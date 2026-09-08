@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+artifacts/
+.pytest_cache/
+proofml-report/
+proofml-clean/
+build/
+dist/
+.coverage
+htmlcov/
+*.log
+.DS_Store

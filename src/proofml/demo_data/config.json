@@ -1,0 +1,10 @@
+{
+  "task": "classification",
+  "target": "churn",
+  "entity_id": "customer_id",
+  "time_column": "snapshot_date",
+  "require_disjoint_entities": true,
+  "expect_temporal_split": true,
+  "unavailable_features": ["cancellation_recorded"],
+  "min_samples": 30
+}

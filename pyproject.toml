@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proofml"
+dynamic = ["version"]
+description = "Evidence-backed local audits for tabular machine learning datasets"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = []
+classifiers = ["Programming Language :: Python :: 3", "Operating System :: OS Independent", "Development Status :: 3 - Alpha"]
+keywords = ["machine-learning", "data-quality", "forecasting", "leakage", "validation"]
+
+[project.urls]
+Repository = "https://github.com/rbhatia46/proofml"
+Documentation = "https://github.com/rbhatia46/proofml/blob/main/README.md"
+Issues = "https://github.com/rbhatia46/proofml/issues"
+Changelog = "https://github.com/rbhatia46/proofml/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+pandas = ["pandas>=2.0,<3"]
+parquet = ["pandas>=2.0,<3", "pyarrow>=14,<24"]
+dev = ["build>=1.2,<2", "twine>=6,<7", "pandas>=2.0,<3", "pyarrow>=14,<24", "scikit-learn>=1.4,<2"]
+
+[tool.setuptools.dynamic]
+version = {attr = "proofml._version.__version__"}
+
+[project.scripts]
+proofml = "proofml.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["proofml*"]
+
+[tool.setuptools.package-data]
+proofml = ["py.typed", "demo_data/*.csv", "demo_data/*.json"]

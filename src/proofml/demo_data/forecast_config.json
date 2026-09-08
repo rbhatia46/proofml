@@ -1,0 +1,9 @@
+{
+  "task": "forecasting",
+  "target": "demand",
+  "time_column": "origin",
+  "series_id": "store",
+  "expected_interval_seconds": 86400,
+  "label_horizon_seconds": 172800,
+  "embargo_seconds": 0
+}
