@@ -16,10 +16,17 @@ class RetrievalData:
     corpus_ids: frozenset[str] | None
     fingerprint: str
     size_bytes: int
+    evaluation_fingerprint: str
+    output_fingerprint: str
+    corpus_fingerprint: str
+    alignment: str
 
     def metadata(self):
         return {"rows": len(self.retrieved), "columns": ["retrieved", "relevant"],
-                "sha256": self.fingerprint, "format": "retrieval", "size_bytes": self.size_bytes}
+                "sha256": self.fingerprint, "format": "retrieval", "size_bytes": self.size_bytes,
+                "comparison_contract": "retrieval.binary.v1", "alignment": self.alignment,
+                "evaluation_sha256": self.evaluation_fingerprint, "output_sha256": self.output_fingerprint,
+                "corpus_sha256": self.corpus_fingerprint}
 
 
 def load_retrieval(retrieved, relevant, corpus_ids, config: RetrievalConfig) -> RetrievalData:
@@ -43,7 +50,8 @@ def load_retrieval(retrieved, relevant, corpus_ids, config: RetrievalConfig) -> 
             result.append(value)
         return tuple(result)
 
-    if isinstance(retrieved, Mapping) or isinstance(relevant, Mapping):
+    keyed = isinstance(retrieved, Mapping) or isinstance(relevant, Mapping)
+    if keyed:
         if not isinstance(retrieved, Mapping) or not isinstance(relevant, Mapping):
             raise TypeError("Use mappings for both retrieved and relevant, or ordered iterables for both")
         if len(retrieved) > config.max_queries or len(relevant) > config.max_queries:
@@ -65,6 +73,7 @@ def load_retrieval(retrieved, relevant, corpus_ids, config: RetrievalConfig) -> 
 
         triples = positional()
     rankings, judgments = [], []
+    evaluation_parts, output_parts = [], []
     for query_id, rank, truth in triples:
         if len(rankings) >= config.max_queries:
             raise ValueError("Retrieval input exceeds max_queries; no sampling was performed")
@@ -75,6 +84,11 @@ def load_retrieval(retrieved, relevant, corpus_ids, config: RetrievalConfig) -> 
             raise ValueError("Retrieval input exceeds max_bytes")
         ranking = identifiers(rank, config.max_ids_per_query, ranked=True)
         judgment = frozenset(identifiers(truth, config.max_ids_per_query, ranked=False))
+        # Sort per-case digests later so mapping insertion order is irrelevant.
+        # Stable query IDs and judgments identify the benchmark, not its outputs.
+        identity = query_id if keyed else len(rankings)
+        evaluation_parts.append(sha256(json.dumps([identity, sorted(judgment)], separators=(",", ":")).encode()).digest())
+        output_parts.append(sha256(json.dumps([identity, ranking], separators=(",", ":")).encode()).digest())
         digest.update(json.dumps([query_id, ranking, sorted(judgment)], separators=(",", ":")).encode("utf-8") + b"\n")
         rankings.append(ranking)
         judgments.append(judgment)
@@ -82,7 +96,11 @@ def load_retrieval(retrieved, relevant, corpus_ids, config: RetrievalConfig) -> 
         raise ValueError("Retrieval input must contain at least one query")
     corpus = frozenset(identifiers(corpus_ids, config.max_corpus_ids, ranked=False)) if corpus_ids is not None else None
     digest.update(json.dumps(sorted(corpus) if corpus is not None else None, separators=(",", ":")).encode("utf-8"))
-    return RetrievalData(tuple(rankings), tuple(judgments), corpus, digest.hexdigest(), size)
+    evaluation_hash = sha256(b"proofml:retrieval:evaluation:v1\n" + b"".join(sorted(evaluation_parts))).hexdigest()
+    output_hash = sha256(b"proofml:retrieval:outputs:v1\n" + b"".join(sorted(output_parts))).hexdigest()
+    corpus_hash = sha256(json.dumps(sorted(corpus) if corpus is not None else None, separators=(",", ":")).encode()).hexdigest()
+    return RetrievalData(tuple(rankings), tuple(judgments), corpus, digest.hexdigest(), size,
+                         evaluation_hash, output_hash, corpus_hash, "query_id" if keyed else "position")
 
 
 @dataclass(frozen=True)

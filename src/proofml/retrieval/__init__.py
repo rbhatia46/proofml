@@ -21,8 +21,13 @@ def audit_retrieval(retrieved, relevant, *, corpus_ids=None, config: RetrievalCo
     registry = validate_checks(default_retrieval_checks() if checks is None else checks, config.disabled_checks)
     data = load_retrieval(retrieved, relevant, corpus_ids, config)
     ctx = RetrievalContext(data, config)
+    builtin_types = {check.id: type(check) for check in default_retrieval_checks()}
+    metadata = data.metadata()
+    # A plugin can reuse an ID while changing metric semantics. Until plugins
+    # have a versioned comparison contract, do not claim those runs comparable.
+    metadata["builtin_check_contracts"] = {check.id: "1" if type(check) is builtin_types.get(check.id) else None for check in registry}
     return AuditReport("1.0", __version__, datetime.now(timezone.utc).isoformat(),
-        {"modality": "retrieval", **asdict(config)}, {"evaluation": data.metadata()},
+        {"modality": "retrieval", **asdict(config)}, {"evaluation": metadata},
         run_checks(ctx, registry, config.disabled_checks))
 
 

@@ -2,7 +2,7 @@
 from collections import Counter, defaultdict
 import re
 
-from ..models import CheckResult, Finding
+from ..models import CheckResult, Coverage, Finding
 from .data import TextContext
 
 
@@ -33,7 +33,8 @@ class TextQualityCheck:
                     findings.append(Finding(code, "medium", "confirmed", f"{title} in {name}",
                         "Observed under the configured document normalization; raw documents are not included.",
                         recommendation, evidence={"split": name, "affected_rows": count}))
-        return CheckResult.complete(self.id, findings)
+        rows = len(ctx.train.documents) + (len(ctx.test.documents) if ctx.test is not None else 0)
+        return CheckResult.complete(self.id, findings, coverage=Coverage(rows, rows, "documents"))
 
 
 class TextLabelsCheck:

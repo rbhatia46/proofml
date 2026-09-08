@@ -32,12 +32,31 @@ class Finding:
 
 
 @dataclass(frozen=True)
+class Coverage:
+    """Check-specific assessed population; counts do not establish statistical power."""
+    total: int
+    evaluated: int
+    unit: str = "observations"
+
+    def __post_init__(self):
+        if type(self.total) is not int or type(self.evaluated) is not int or not 0 <= self.evaluated <= self.total:
+            raise ValueError("Coverage requires integer counts with 0 <= evaluated <= total")
+        if not isinstance(self.unit, str) or not self.unit.strip():
+            raise ValueError("Coverage requires a nonempty unit")
+
+    @property
+    def fraction(self) -> float | None:
+        return self.evaluated / self.total if self.total else None
+
+
+@dataclass(frozen=True)
 class CheckResult:
     check_id: str
     status: Status
     findings: tuple[Finding, ...] = ()
     reason: str = ""
     metrics: dict[str, int | float] = field(default_factory=dict)
+    coverage: Coverage | None = None
 
     def __post_init__(self) -> None:
         if self.status not in {"passed", "findings", "skipped", "error"}:
@@ -51,10 +70,17 @@ class CheckResult:
         for name, value in self.metrics.items():
             if not isinstance(name, str) or not name or type(value) not in {int, float} or not math.isfinite(value):
                 raise ValueError("Metrics need nonempty names and finite numeric values")
+        if self.coverage is not None:
+            if not isinstance(self.coverage, Coverage):
+                raise TypeError("coverage must be Coverage or None")
+            self.coverage.__post_init__()
+            if self.status == "error" or (self.status == "skipped" and self.coverage.evaluated):
+                raise ValueError("Uncompleted checks cannot claim evaluated coverage")
 
     @classmethod
-    def complete(cls, check_id: str, findings: list[Finding], *, metrics: dict[str, int | float] | None = None) -> CheckResult:
-        return cls(check_id, "findings" if findings else "passed", tuple(findings), metrics=metrics or {})
+    def complete(cls, check_id: str, findings: list[Finding], *, metrics: dict[str, int | float] | None = None,
+                 coverage: Coverage | None = None) -> CheckResult:
+        return cls(check_id, "findings" if findings else "passed", tuple(findings), metrics=metrics or {}, coverage=coverage)
 
 
 @dataclass(frozen=True)
@@ -93,6 +119,17 @@ class AuditReport:
         """Save report.html and report.json in a directory; return both paths."""
         from .reporting import write_reports
         return write_reports(self, output, overwrite=overwrite)
+
+    @classmethod
+    def load(cls, path, *, max_bytes: int = 100_000_000) -> AuditReport:
+        """Load a validated report.json snapshot; never unpickle or execute code."""
+        from .snapshots import load_report
+        return load_report(path, max_bytes=max_bytes)
+
+    def compare(self, baseline: AuditReport):
+        """Compare retrieval metrics only when evaluation identities are compatible."""
+        from .comparison import compare_reports
+        return compare_reports(self, baseline)
 
     def to_frame(self):
         """Return one pandas row per finding, with a stable empty-table schema.

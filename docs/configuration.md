@@ -43,6 +43,10 @@ availability timestamps, not both. See the
 
 ## CI exit codes
 
+The following describes `proofml audit` and `proofml demo`. For saved-report
+release policies, use [`proofml gate`](release-gates.md): it distinguishes
+measured failure (1) from insufficient/incompatible evidence (2).
+
 | Code | Meaning |
 | --- | --- |
 | 0 | Audit completed, no finding at the configured failure threshold |

@@ -61,6 +61,32 @@ See the [text guide](docs/text.md), [retrieval guide](docs/retrieval.md), and
 [runnable offline example](examples/text_and_retrieval.py). Text checks do not
 understand meaning; retrieval metrics do not judge generated answers.
 
+## Evidence-aware release gates
+
+A high score on too few evaluated cases should not approve a release. Define
+your evidence requirements once and reuse them in Python or CI:
+
+```python
+from proofml import AuditPolicy
+
+policy = AuditPolicy(
+    require_checks=("retrieval_ranking",),
+    min_coverage={"retrieval_ranking": 0.95},
+    min_evaluated={"retrieval_ranking": 100},
+    min_metrics={"retrieval_ranking.recall@5": 0.8},
+)
+decision = policy.enforce(retrieval_report)
+```
+
+Thresholds are illustrative; choose them for your project. Policies work across
+report types. Retrieval reports additionally support strict baseline comparisons
+using stable query IDs and separate evaluation/output fingerprints. Missing
+evidence and incompatible evaluations block the gate.
+
+See [release policies, baseline comparisons, and JUnit CI output](docs/release-gates.md).
+The earlier `report.raise_for_issues()` retains its simple severity/completion
+semantics; it does not automatically require a sufficient evaluated population.
+
 ## Install
 
 **Publication status:** a public PyPI release is not yet verified. Install from
@@ -216,7 +242,7 @@ It does not certify a model or generate a pseudo-precise trust score. Strong
 correlation is a suspicion, not proof of leakage. No-finding reports do not
 imply that skipped checks passed.
 
-Version 0.5 does not inspect notebooks, fitted pipelines, preprocessing order,
+Version 0.6 does not inspect notebooks, fitted pipelines, preprocessing order,
 fairness, images/audio/video, text semantics, or arbitrary project code. It can audit exported inputs
 from a scikit-learn workflow, but does not introspect the estimator. Those
 capabilities require separate adapters and validated checks.

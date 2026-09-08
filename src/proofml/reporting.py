@@ -23,7 +23,9 @@ def render_html(report: AuditReport) -> str:
 <h3>{escape(finding.title)}</h3><p>{escape(finding.explanation)}</p>
 <p class="fix"><strong>Next step:</strong> {escape(finding.recommendation)}</p>
 <details><summary>Evidence · {escape(finding.code)}</summary><table>{evidence}</table></details></article>''')
-    coverage = "".join(f'<tr><th>{escape(c.check_id)}</th><td>{escape(c.status)}</td><td>{escape(c.reason)}</td></tr>' for c in report.checks)
+    coverage = "".join(f'<tr><th>{escape(c.check_id)}</th><td>{escape(c.status)}</td><td>{escape(c.reason)}'
+                       + (f' · {c.coverage.evaluated}/{c.coverage.total} {escape(c.coverage.unit)} assessed' if c.coverage is not None else '')
+                       + '</td></tr>' for c in report.checks)
     measurements = "".join(f'<tr><th>{escape(check_id)}</th><td>{escape(name)}</td><td>{escape(value)}</td></tr>'
                            for check_id, metrics in report.metrics.items() for name, value in metrics.items())
     metrics_section = ('<h2>Measurements</h2><section class="panel table-wrap"><table><thead>'

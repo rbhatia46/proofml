@@ -45,6 +45,10 @@ pipeline; no workflow scheduler or autonomous agent is required.
 
 ## What must happen before a stable 1.0
 
+Version 0.6 adds evidence-aware policies and strict retrieval baseline comparison
+as the first release-decision layer. This does not implement the remaining
+roadmap or establish production maturity. See [the policy contract](release-gates.md).
+
 - Gather reproducible failure/clean cases from independent users and domains;
   measure false positives and missed failures, not just unit-test counts.
 - Benchmark runtime/memory on documented corpus sizes and publish methodology.

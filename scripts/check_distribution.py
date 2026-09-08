@@ -29,6 +29,8 @@ def verify(directory):
         run("-c", "from proofml import audit; r = audit('tiny.csv', target='y'); r.save('api'); r.raise_for_issues(); print(r)")
         run("-c", "from proofml import audit_text; r = audit_text(['a red bird flies'], ['snow covers every mountain']); r.save('text'); r.raise_for_issues(require_checks=('text_overlap', 'text_near_duplicates')); print(r)")
         run("-c", "from proofml import audit_retrieval; r = audit_retrieval({'q1': ['doc1']}, {'q1': {'doc1'}}, k=1, min_recall=1); r.save('retrieval'); r.raise_for_issues(require_checks=('retrieval_ranking',)); assert r.metrics['retrieval_ranking']['recall@1'] == 1; print(r)")
+        run("-c", "from proofml import AuditReport, AuditPolicy; r = AuditReport.load('retrieval/report.json'); p = AuditPolicy(min_coverage={'retrieval_ranking': 1}, min_evaluated={'retrieval_ranking': 1}, max_drop={'retrieval_ranking.recall@1': 0}); p.save('policy.json'); d = p.enforce(r, baseline=r); d.save('decision.json'); d.save_junit('decision.xml'); assert d.passed")
+        run("-m", "proofml", "gate", "retrieval/report.json", "--policy", "policy.json", "--baseline", "retrieval/report.json", "--output", "cli-decision.json", "--junit", "cli-decision.xml")
         print("Installed wheel, versions, bundled demos, and all domain APIs verified without runtime dependencies.")
 
 

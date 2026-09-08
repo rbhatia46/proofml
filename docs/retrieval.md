@@ -60,7 +60,10 @@ The ranking definitions follow standard
 This implementation does not support graded judgments. It records
 `evaluated_queries` and `excluded_queries`; no positives means ranking metrics
 and thresholds **skip**, never a fabricated zero or perfect score. Always use
-`require_checks=("retrieval_ranking",)` for a deployment gate. Skips are allowed
+`require_checks=("retrieval_ranking",)` to require completion. For a deployment
+gate, also declare minimum judged coverage and assessed counts with
+[`AuditPolicy`](release-gates.md). Completion alone can succeed with only one
+judged query. Skips are allowed
 by the general report gate unless explicitly required.
 
 ## Checks

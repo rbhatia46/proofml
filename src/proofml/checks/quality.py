@@ -2,7 +2,7 @@
 from collections import Counter
 from ..context import AuditContext
 from ..data import number
-from ..models import CheckResult, Finding
+from ..models import CheckResult, Coverage, Finding
 
 
 class QualityCheck:
@@ -38,7 +38,8 @@ class QualityCheck:
                         "Most nonempty values parse as finite numbers; some do not. Categories may be intentional.",
                         "Check units, sentinels, and parsing before converting this column.", (column,),
                         {"split": split, "numeric": numeric, "non_numeric": len(present) - numeric}))
-        return CheckResult.complete(self.id, findings)
+        rows = len(ctx.train.rows) + (len(ctx.test.rows) if ctx.test is not None else 0)
+        return CheckResult.complete(self.id, findings, coverage=Coverage(rows, rows, "rows"))
 
 
 class TargetCheck:

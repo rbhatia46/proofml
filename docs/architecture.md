@@ -16,6 +16,9 @@ fixed sequence of checks “intelligent agents” would overstate its capabiliti
 | `checks/` | Independent evidence-generating checks | Print, persist, or call a model |
 | `engine.py` | Validate inputs, run registry, isolate failures | Hide errors as passes |
 | `core.py` | Shared typed check protocol, registry validation, exception isolation | Infer modality or business context |
+| `policy.py` | Reusable evidence/quality/regression requirements and structured decisions | Infer production thresholds or promote baselines |
+| `comparison.py` | Strict retrieval evaluation compatibility and metric changes | Compare unverifiable benchmarks |
+| `snapshots.py` | Bounded, validated JSON loading and atomic decision/policy writes | Execute serialized code or authenticate report authors |
 | `text/` | Text config, bounded document adapter, context, independent checks, API | Load a model or infer semantics |
 | `retrieval/` | Retrieval config, ID adapter, context, integrity/metric checks, API | Infer relevance or score generated answers |
 | `models.py` | Versioned report contracts | Assign an arbitrary trust score |
@@ -98,4 +101,8 @@ numbers. `report.metrics` groups these by check ID to avoid name collisions.
 Skipped/errored checks never provide metrics. JSON gains additive check-level
 and report-level metric fields in 0.5; the structural schema remains 1.0.
 The HTML report has no external fonts, assets, JavaScript, or requests.
+In 0.6 checks may additionally declare `Coverage(total, evaluated, unit)`.
+Missing coverage remains unknown. Retrieval manifests separate benchmark,
+corpus, and output identities for strict comparison; old snapshots remain
+loadable but do not acquire missing evidence. See [release gates](release-gates.md).
 All text is escaped. Native details controls expose supporting evidence.

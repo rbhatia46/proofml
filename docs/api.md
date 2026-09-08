@@ -87,6 +87,13 @@ An empty findings table does not imply every check was applicable.
 
 ## Fail a pipeline deliberately
 
+For release policies with minimum data coverage, assessed counts, metric bounds,
+and compatible retrieval-baseline regressions, use `AuditPolicy`. See the
+[release gate guide](release-gates.md). Reports saved as JSON can be restored
+with `AuditReport.load("run-001/report.json")`. Loading does not execute checks.
+The simpler method below remains backward-compatible and does not assess
+whether the evaluated population is large or representative enough.
+
 ```python
 report.raise_for_issues(
     severity="high",

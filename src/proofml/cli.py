@@ -14,12 +14,14 @@ from .reporting import write_reports
 from ._version import __version__
 from .text import default_text_checks
 from .retrieval import default_retrieval_checks
+from .gate_cli import add_gate_parser, run_gate
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="proofml", description="Local ML audits with evidence and no API keys. Text/retrieval audits use the Python API.")
     parser.add_argument("--version", action="version", version=f"proofml {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
+    add_gate_parser(commands)
     listing = commands.add_parser("checks", help="List built-in check IDs")
     listing.add_argument("--task", choices=("classification", "regression", "forecasting"), default="classification")
     listing.add_argument("--domain", choices=("tabular", "text", "retrieval"), default="tabular")
@@ -40,6 +42,8 @@ def main(argv: list[str] | None = None) -> int:
         sub.add_argument("--fail-on", choices=(*SEVERITY_ORDER, "none"), default="high",
                          help="Exit 1 for findings at or above this severity (default: high)")
     args = parser.parse_args(argv)
+    if args.command == "gate":
+        return run_gate(args)
     if args.command == "checks":
         registry = {"tabular": lambda: default_checks(args.task), "text": default_text_checks,
                     "retrieval": default_retrieval_checks}[args.domain]()

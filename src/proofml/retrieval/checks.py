@@ -1,7 +1,7 @@
 """Framework-neutral retrieval evaluation with explicit binary relevance semantics."""
 import math
 
-from ..models import CheckResult, Finding
+from ..models import CheckResult, Coverage, Finding
 from .data import RetrievalContext
 
 
@@ -31,7 +31,8 @@ class RetrievalInputsCheck:
             if metrics[key]:
                 findings.append(Finding(code, severity, "confirmed", title, explanation, recommendation,
                                         evidence={"affected_queries": metrics[key]}))
-        return CheckResult.complete(self.id, findings, metrics=metrics)
+        return CheckResult.complete(self.id, findings, metrics=metrics,
+                                    coverage=Coverage(len(rankings), len(rankings), "queries"))
 
 
 class RetrievalCorpusCheck:
@@ -52,7 +53,7 @@ class RetrievalCorpusCheck:
                     "Some supplied document IDs are not members of the declared corpus snapshot.",
                     "Align corpus versions and document/chunk ID namespaces before comparing retrievers.",
                     evidence={"affected_queries": sum(n > 0 for n in counts), "missing_id_occurrences": sum(counts)}))
-        return CheckResult.complete(self.id, findings)
+        return CheckResult.complete(self.id, findings, coverage=Coverage(len(ctx.data.retrieved), len(ctx.data.retrieved), "queries"))
 
 
 class RetrievalRankingCheck:
@@ -83,8 +84,9 @@ class RetrievalRankingCheck:
             totals[f"hit_rate@{k}"] += bool(hits)
             totals[f"mrr@{k}"] += reciprocal
             totals[f"ndcg@{k}"] += dcg / ideal
+        coverage = Coverage(len(ctx.data.retrieved), assessed, "queries")
         if not assessed:
-            return CheckResult(self.id, "skipped", reason="No query has positive relevance judgments; ranking metrics and thresholds are unassessed.")
+            return CheckResult(self.id, "skipped", reason="No query has positive relevance judgments; ranking metrics and thresholds are unassessed.", coverage=coverage)
         metrics = {key: value / assessed for key, value in totals.items()}
         metrics.update({"evaluated_queries": assessed, "excluded_queries": len(ctx.data.retrieved) - assessed})
         findings = []
@@ -97,7 +99,7 @@ class RetrievalRankingCheck:
                               "evaluated_queries": assessed}))
         result = CheckResult.complete(self.id, findings, metrics=metrics)
         return CheckResult(self.id, result.status, result.findings,
-            reason="Binary judgments; unlisted IDs count as nonrelevant; macro average over queries with positives. Duplicate hits receive credit once. This does not assess generated answers.", metrics=metrics)
+            reason="Binary judgments; unlisted IDs count as nonrelevant; macro average over queries with positives. Duplicate hits receive credit once. This does not assess generated answers.", metrics=metrics, coverage=coverage)
 
 
 def default_retrieval_checks():

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.0 — Unreleased
+
+- Added reusable `AuditPolicy` gates for required checks, row counts, declared
+  coverage, assessed populations, metric bounds, and explicit regression tolerances.
+- Added passed/failed/insufficient/incompatible decisions, JSON/JUnit exports,
+  and `proofml gate` for CI against saved reports and policies.
+- Added validated `AuditReport.load` snapshots and conservative retrieval metric
+  comparisons with separate benchmark, output, and corpus fingerprints.
+- Preserved the existing audit and `raise_for_issues` APIs. Policies are opt-in;
+  they do not silently change previous threshold or skip semantics.
+- Added coverage, compatibility, snapshot, CLI, privacy, and packaging tests.
+
 ## 0.5.0 — Unreleased
 
 - Added dependency-free `audit_text` for document integrity, single-label
