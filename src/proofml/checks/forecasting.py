@@ -2,7 +2,7 @@
 
 Time denotes forecast origin, not the date of the future outcome. Series keys
 remain internal; evidence only exposes aggregates. No resampling or imputation
-is performed. Calendar schedules and variable label horizons are out of scope.
+is performed. Variable label availability is supported through declared timestamps.
 """
 from collections import defaultdict
 from datetime import datetime
@@ -116,8 +116,9 @@ class ForecastBoundaryCheck:
 
     def run(self, ctx: AuditContext) -> CheckResult:
         horizon = ctx.config.label_horizon_seconds
-        if horizon is None:
-            return CheckResult(self.id, "skipped", reason="Declare label_horizon_seconds: elapsed time until each training label is available.")
+        available_column = ctx.config.label_available_column
+        if horizon is None and not available_column:
+            return CheckResult(self.id, "skipped", reason="Declare label_horizon_seconds or label_available_column to establish training label availability.")
         if ctx.test is None:
             return CheckResult(self.id, "skipped", reason="A test dataset is required to establish the shared cutoff.")
         try:
@@ -129,16 +130,37 @@ class ForecastBoundaryCheck:
         # Compare timedeltas rather than adding a horizon to datetime.max.
         # Equality fails by contract: labels must be available strictly BEFORE
         # the first test origin, including the optional embargo margin.
-        required = horizon + ctx.config.embargo_seconds
-        affected = sum((cutoff - t).total_seconds() <= required for times in train.values() for t in times)
+        if available_column:
+            try:
+                available = [parse_time(v) for v in ctx.train.column(available_column)]
+                origins = [parse_time(v) for v in ctx.train.column(ctx.config.time_column)]
+            except (ValueError, OverflowError):
+                return CheckResult.complete(self.id, [Finding(
+                    "invalid_label_availability", "high", "confirmed", "Invalid label-availability timestamps",
+                    "At least one training label availability is missing or not ISO 8601.",
+                    "Provide the actual availability timestamp for every training label.", (available_column,),
+                )])
+            backwards = sum(a < o for a, o in zip(available, origins))
+            if backwards:
+                return CheckResult.complete(self.id, [Finding(
+                    "label_available_before_origin", "high", "confirmed", "Forecast labels precede their origins",
+                    "The declared future-outcome labels have availability timestamps earlier than their forecast origins.",
+                    "Check timestamp semantics and joins before assessing cutoff overlap.", (available_column,),
+                    {"invalid_rows": backwards},
+                )])
+            affected = sum((cutoff - t).total_seconds() <= ctx.config.embargo_seconds for t in available)
+        else:
+            required = horizon + ctx.config.embargo_seconds
+            affected = sum((cutoff - t).total_seconds() <= required for times in train.values() for t in times)
         findings = []
         if affected:
             findings.append(Finding(
                 "forecast_label_boundary_overlap", "high", "confirmed", "Training labels cross the forecast cutoff",
-                "Given the declared fixed label horizon and embargo, some training labels are not available strictly before the earliest test origin across all series.",
+                "Given the declared label availability and embargo, some training labels are not available strictly before the earliest test origin across all series.",
                 "Purge affected training origins or move the holdout later; fit once using only labels available before that cutoff.",
                 evidence={"affected_training_rows": affected, "training_rows": len(ctx.train.rows),
                           "label_horizon_seconds": horizon, "embargo_seconds": ctx.config.embargo_seconds,
+                          "label_available_column": available_column,
                           "cutoff_scope": "global_first_test_origin", "boundary": "strictly_before"},
             ))
         return CheckResult.complete(self.id, findings)

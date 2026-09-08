@@ -26,11 +26,12 @@ class AuditConfig:
     expected_interval_seconds: int | None = None
     label_horizon_seconds: int | None = None
     embargo_seconds: int = 0
+    label_available_column: str | None = None
 
     def __post_init__(self) -> None:
         if self.task not in {"classification", "regression", "forecasting"}:
             raise ValueError("task must be classification, regression, or forecasting")
-        for name in ("target", "entity_id", "time_column", "series_id"):
+        for name in ("target", "entity_id", "time_column", "series_id", "label_available_column"):
             value = getattr(self, name)
             if value is not None and (not isinstance(value, str) or not value.strip()):
                 raise ValueError(f"{name} must be a nonempty column name")
@@ -67,10 +68,15 @@ class AuditConfig:
             object.__setattr__(self, "expect_temporal_split", True)
             if self.series_id in {self.time_column, self.target} or self.time_column == self.target:
                 raise ValueError("Forecast target, time_column, and series_id must be distinct")
-            if self.embargo_seconds and self.label_horizon_seconds is None:
-                raise ValueError("embargo_seconds requires label_horizon_seconds")
+            if self.label_available_column:
+                if self.label_available_column in {self.target, self.time_column, self.series_id, self.entity_id}:
+                    raise ValueError("label_available_column must be distinct from target/time/series/entity columns")
+                if self.label_horizon_seconds is not None:
+                    raise ValueError("Choose label_available_column or label_horizon_seconds, not both")
+            if self.embargo_seconds and self.label_horizon_seconds is None and not self.label_available_column:
+                raise ValueError("embargo_seconds requires label_horizon_seconds or label_available_column")
         elif (self.series_id is not None or self.expected_interval_seconds is not None
-              or self.label_horizon_seconds is not None or self.embargo_seconds):
+              or self.label_horizon_seconds is not None or self.embargo_seconds or self.label_available_column):
             raise ValueError("Forecast settings require task='forecasting'")
 
     def to_dict(self) -> dict:

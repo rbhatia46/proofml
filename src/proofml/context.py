@@ -12,5 +12,6 @@ class AuditContext:
 
     @property
     def features(self) -> tuple[str, ...]:
-        excluded = {self.config.target, self.config.entity_id, self.config.time_column, self.config.series_id}
+        excluded = {self.config.target, self.config.entity_id, self.config.time_column,
+                    self.config.series_id, self.config.label_available_column}
         return tuple(c for c in self.train.columns if c not in excluded)

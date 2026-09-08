@@ -104,8 +104,15 @@ def from_dataframe(frame, config: AuditConfig) -> Dataset:
         import pandas as pd
     except ImportError as error:
         raise TypeError("Expected a CSV/Parquet path or pandas DataFrame; pandas is not installed") from error
+    import numpy as np
+    if isinstance(frame, np.ndarray):
+        if frame.ndim != 2:
+            raise ValueError("Feature arrays must be two-dimensional")
+        if len(frame) > config.max_rows or frame.nbytes > config.max_bytes:
+            raise ValueError("Array exceeds configured input limits")
+        frame = pd.DataFrame(frame, columns=[f"feature_{i}" for i in range(frame.shape[1])])
     if not isinstance(frame, pd.DataFrame):
-        raise TypeError("Expected a CSV/Parquet path or pandas DataFrame; arrays and records are not supported")
+        raise TypeError("Expected a CSV/Parquet path, pandas DataFrame, or dense NumPy array")
     if frame.empty:
         raise ValueError("DataFrame must contain columns and data rows")
     if len(frame) > config.max_rows:

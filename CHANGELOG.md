@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 — Unreleased
+
+- Added dense NumPy and separate X/y inputs with explicit pandas index checks.
+- Added train/test compatibility checks for unseen classes/categories, numeric
+  parsing changes, and missingness increases.
+- Added per-row forecast label-availability timestamps for variable horizons
+  and reporting delays, excluded from candidate features and schema matching.
+- Expanded the regression suite to cover generalization and input alignment.
+
 ## 0.3.0 — Unreleased
 
 - Added direct `audit(data, target=...)` arguments with optional reusable config.

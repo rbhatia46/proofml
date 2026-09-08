@@ -17,9 +17,9 @@ and issue URLs are configured in pyproject.toml. Do not paste API tokens into so
 ```bash
 python -m pip install -e '.[dev]'
 python -m unittest discover -s tests -v
-python -m build --outdir artifacts/release-0.3.0
-python -m twine check --strict artifacts/release-0.3.0/*
-python scripts/check_distribution.py artifacts/release-0.3.0
+python -m build --outdir artifacts/release-0.4.0
+python -m twine check --strict artifacts/release-0.4.0/*
+python scripts/check_distribution.py artifacts/release-0.4.0
 ```
 
 Use a fresh output directory per version. The build command creates an sdist
@@ -52,10 +52,10 @@ the workflow file; that setup must actually be completed by an account owner.
 1. Push the reviewed package and workflow to the chosen GitHub repository.
 2. Dispatch **Build and publish package** with destination `testpypi`.
 3. Verify from a fresh environment:
-   `python -m pip install --index-url https://test.pypi.org/simple/ --no-deps proofml==0.3.0`.
-4. Create/push the reviewed `v0.3.0` tag. Dispatch the same workflow from that
+   `python -m pip install --index-url https://test.pypi.org/simple/ --no-deps proofml==0.4.0`.
+4. Create/push the reviewed `v0.4.0` tag. Dispatch the same workflow from that
    tag with destination `pypi`. The workflow checks that tag and version match.
-5. Verify with `python -m pip install --index-url https://pypi.org/simple/ proofml==0.3.0`,
+5. Verify with `python -m pip install --index-url https://pypi.org/simple/ proofml==0.4.0`,
    then run the demos and Python quick start outside the repository.
 6. Only then switch the README installation instructions to the public command.
 

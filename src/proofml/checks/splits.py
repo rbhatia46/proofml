@@ -10,8 +10,8 @@ class SchemaCheck:
     def run(self, ctx: AuditContext) -> CheckResult:
         if ctx.test is None:
             return CheckResult(self.id, "skipped", reason="A test dataset is required.")
-        train = set(ctx.train.columns) - {ctx.config.target}
-        test = set(ctx.test.columns) - {ctx.config.target}
+        train = set(ctx.train.columns) - {ctx.config.target, ctx.config.label_available_column}
+        test = set(ctx.test.columns) - {ctx.config.target, ctx.config.label_available_column}
         findings = []
         if train != test:
             findings.append(Finding("schema_mismatch", "high", "confirmed", "Train and test schemas differ",
@@ -26,8 +26,9 @@ class OverlapCheck:
     def run(self, ctx: AuditContext) -> CheckResult:
         if ctx.test is None:
             return CheckResult(self.id, "skipped", reason="A test dataset is required.")
-        columns = tuple(c for c in ctx.train.columns if c != ctx.config.target)
-        if not columns or set(columns) != set(ctx.test.columns) - {ctx.config.target}:
+        metadata = {ctx.config.target, ctx.config.label_available_column}
+        columns = tuple(c for c in ctx.train.columns if c not in metadata)
+        if not columns or set(columns) != set(ctx.test.columns) - metadata:
             return CheckResult(self.id, "skipped", reason="Matching non-target schemas are required.")
         train_indices = [ctx.train.columns.index(c) for c in columns]
         test_indices = [ctx.test.columns.index(c) for c in columns]

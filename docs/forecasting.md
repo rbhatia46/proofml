@@ -1,4 +1,4 @@
-# Forecasting audits: fixed-horizon holdouts
+# Forecasting audits: label-aware holdouts
 
 Use this mode for numeric forecasts such as daily demand per store or hourly
 sensor measurements. Supply one train/test fold at a time. The audit assumes
@@ -53,7 +53,7 @@ Series IDs are excluded from target-association and drift checks.
 | `forecast_cadence` | Intervals differ from declared sampling duration; exact-multiple missing slots | Violation of a user-declared grid, not an inferred schedule |
 | `forecast_label_boundary` | Training labels plus embargo reach the earliest test origin | Violation of a declared single-cutoff availability contract |
 
-The nine common checks still run. Forecast targets use regression validation,
+The ten common checks still run. Forecast targets use regression validation,
 not class-imbalance rules. Forecasting enables strict chronological holdout checking.
 
 With a two-day label horizon, a January 9 origin has a label available January
@@ -65,7 +65,30 @@ train origin + label_horizon_seconds + embargo_seconds < earliest test origin
 
 Equality fails deliberately: availability must be strictly before prediction.
 Include reporting delay in the horizon. Zero means labels are available
-immediately. No horizon means an explicit skip. Embargo requires a horizon.
+immediately. Without a horizon or availability column, the boundary check skips.
+Embargo requires one of those availability contracts.
+
+## Variable horizons and reporting delays
+
+When outcomes become available at different times, declare their actual
+availability column instead of a fixed horizon:
+
+```python
+from proofml import audit
+
+report = audit(
+    train_df, test_df, target="demand", task="forecasting",
+    time_column="origin", series_id="store",
+    label_available_column="label_ready_at", embargo_seconds=3600,
+)
+```
+
+Every training availability timestamp plus embargo must precede the earliest
+test origin strictly. Missing/invalid timestamps and availability before the
+corresponding origin produce findings. This column is metadata, not a candidate
+predictor, and need not be present in test. Do not also set a fixed horizon.
+Use the time the label was actually accessible, including reporting delays,
+not merely the time the outcome happened.
 
 ## Coverage and limits
 
@@ -80,8 +103,8 @@ immediately. No horizon means an explicit skip. Embargo requires a horizon.
   test. Single-timestamp groups cannot establish cadence and appear in coverage.
 - Invalid times/keys produce index findings; dependent checks skip explicitly.
 - The global cutoff suits one pooled model. Independent per-series models,
-  rolling retraining, variable horizons, and event-time labels need separate
-  audits/contracts. This does not inspect lag-feature code, centered windows,
+  and rolling retraining need separate audits/contracts. Variable horizons use
+  the availability column described above. This does not inspect lag-feature code, centered windows,
   future covariates, or model performance. No automatic repairs are made.
 - Evidence omits raw series names and timestamps, retaining counts and column
   names. Grouping is O(n); cadence sorting is O(n log n) worst case with O(n)

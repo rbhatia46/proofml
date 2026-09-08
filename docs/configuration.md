@@ -36,7 +36,9 @@ JSON keys, unknown check IDs, invalid thresholds, and malformed datasets fail
 with exit code 2. Row and byte limits refuse the audit instead of sampling.
 
 Forecasting additionally accepts `series_id`, `expected_interval_seconds`,
-`label_horizon_seconds`, and `embargo_seconds`. See the
+`label_horizon_seconds`, `label_available_column`, and `embargo_seconds`.
+Supply either a fixed horizon or a training column containing actual label
+availability timestamps, not both. See the
 [forecasting contract](forecasting.md) before choosing these settings.
 
 ## CI exit codes

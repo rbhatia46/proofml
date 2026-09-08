@@ -9,9 +9,9 @@ report = audit("train.csv", target="churn")
 report.save("audit-report")
 ```
 
-`audit(train, test=None, *, target=None, task=None, config=None, checks=None,
+`audit(train, test=None, *, target=None, y=None, y_test=None, task=None, config=None, checks=None,
 **options)` accepts paths or pandas DataFrames, including one of each.
-`target` names a column, not a separate y array. Omit it for data-quality-only
+`target` names a column; alternatively provide a separate `y` array/Series. Omit both for data-quality-only
 assessment; target checks then explicitly skip. The task defaults to
 classification, so declare regression for continuous numeric targets.
 
@@ -24,7 +24,27 @@ the index holds a time or entity key you need to audit. DataFrame column names
 must be unique strings. DataFrame support requires pandas, but plain CSV use
 does not import it or require any additional package.
 
+## Separate features and labels
+
+For separate features and labels, use:
+
+```python
+report = audit(X_train, X_test, y=y_train, y_test=y_test, task="regression")
+```
+
+Dense 2D NumPy arrays and pandas DataFrames work through the pandas extra.
+Labels must be one-dimensional and equal the feature row count. Pandas Series
+labels must have exactly the same index/order as DataFrame features; array/list
+labels attach positionally. Separate labels with file paths are rejected.
+Array columns become `feature_0`, `feature_1`, etc. The default label column is
+`__proofml_target__`; override it with `target="outcome"`. Existing features
+cannot be overwritten. Without y_test, the holdout is unlabelled.
+
 ## Forecasting
+
+For variable horizons, use `label_available_column="label_ready_at"` instead of
+`label_horizon_seconds`. Training rows supply actual availability timestamps;
+the column is excluded from candidate predictors and may be absent in test.
 
 ```python
 report = audit(

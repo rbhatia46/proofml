@@ -199,7 +199,7 @@ class AuditTests(unittest.TestCase):
         report = audit(path, checks=[*default_checks(), Broken()])
         self.assertEqual(self.result(report, "broken").status, "error")
         self.assertNotIn("private@example.com", json.dumps(report.to_dict()))
-        self.assertEqual(len(report.checks), 10)
+        self.assertEqual(len(report.checks), 11)
 
     def test_duplicate_plugin_ids_rejected(self):
         path = self.csv("data.csv", ["x"], [(1,)])

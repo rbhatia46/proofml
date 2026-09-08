@@ -24,6 +24,12 @@ report.to_frame()              # Findings as a pandas table
 report.raise_for_issues()      # Optional pipeline gate; raises on high/critical findings or check errors
 ```
 
+Separate features and labels work too (DataFrames or dense NumPy arrays):
+
+```python
+report = audit(X_train, X_test, y=y_train, y_test=y_test)
+```
+
 No config file is required. Display `report` in a notebook for an embedded HTML
 report, or `print(report)` for findings and check coverage. Start with
 [the short API guide](docs/api.md) and [the compatibility matrix](docs/compatibility.md).
@@ -51,7 +57,7 @@ proofml demo --output proofml-report --fail-on none
 Open `proofml-report/report.html`. The bundled synthetic churn example produces:
 
 ```text
-ProofML: 8 findings | 2 passed | 7 findings | 0 skipped | 0 error
+ProofML: 8 findings | 3 passed | 7 findings | 0 skipped | 0 error
 
 [CRITICAL / confirmed] Unavailable predictor present: cancellation_recorded
 [HIGH / confirmed] Entities appear in both splits
@@ -132,9 +138,11 @@ fail early so a typo cannot silently disable your intended check.
 | Source hashes and config | Identify which exact inputs and assumptions were audited |
 | Independent check plugins | Add your team's rules without changing the engine |
 
-Nine common modules cover data quality, target health, schema alignment, row overlap,
+Ten common modules cover data quality, target health, schema alignment, row overlap,
 entity overlap, temporal order, feature availability, target association, and
-feature drift. See [the check catalog](docs/checks.md) for thresholds and limits.
+feature drift, and train/test compatibility. Compatibility checks flag unseen test
+classes, new feature categories, numeric parsing changes, and increased missingness.
+See [the check catalog](docs/checks.md) for thresholds and limits.
 
 ## Forecasting support (v0.2)
 
@@ -173,13 +181,13 @@ The current release is a deterministic audit toolkit; it has no LLM planner.
 
 ## Honest scope
 
-ProofML supports scalar CSV/Parquet classification, regression, and fixed-horizon
+ProofML supports scalar tabular classification and regression inputs, and
 forecasting datasets with a shared holdout cutoff.
 It does not certify a model or generate a pseudo-precise trust score. Strong
 correlation is a suspicion, not proof of leakage. No-finding reports do not
 imply that skipped checks passed.
 
-Version 0.3 does not inspect notebooks, fitted pipelines, preprocessing order,
+Version 0.4 does not inspect notebooks, fitted pipelines, preprocessing order,
 fairness, NLP/images, or arbitrary project code. It can audit exported inputs
 from a scikit-learn workflow, but does not introspect the estimator. Those
 capabilities require separate adapters and validated checks.

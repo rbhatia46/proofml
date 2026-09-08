@@ -7,6 +7,7 @@ from .splits import SchemaCheck, OverlapCheck, EntityCheck, TemporalCheck
 from .leakage import AvailabilityCheck, AssociationCheck
 from .drift import DriftCheck
 from .forecasting import ForecastIndexCheck, ForecastCadenceCheck, ForecastBoundaryCheck
+from .compatibility import SplitCompatibilityCheck
 
 
 class Check(Protocol):
@@ -17,7 +18,7 @@ class Check(Protocol):
 
 def default_checks(task: str = "classification") -> tuple[Check, ...]:
     common = (QualityCheck(), TargetCheck(), SchemaCheck(), OverlapCheck(), EntityCheck(),
-            TemporalCheck(), AvailabilityCheck(), AssociationCheck(), DriftCheck())
+            TemporalCheck(), AvailabilityCheck(), AssociationCheck(), DriftCheck(), SplitCompatibilityCheck())
     if task == "forecasting":
         return (*common, ForecastIndexCheck(), ForecastCadenceCheck(), ForecastBoundaryCheck())
     return common

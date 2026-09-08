@@ -11,14 +11,15 @@ table successfully is different from proving that its ML evaluation is valid.
 | pandas 2.x DataFrame | Yes, numeric/string/category/datetime/nullable scalars | Frame with named columns; materialize relevant index |
 | Binary/multiclass classification | Common checks; Pearson association only for binary numeric labels | Target and optional test split |
 | Numeric regression | Common checks, numeric-label validation | `task="regression"`, target |
-| Single/multiple forecast series | Fixed horizons and one shared holdout cutoff | Forecast origin, target, optional series, declared cadence/horizon |
+| Single/multiple forecast series | Fixed horizons or per-row label availability at one shared cutoff | Forecast origin, target, optional series and availability timestamps/horizon |
 | Unlabelled test data | Supported | Test predictor columns; target health only assessed where labels exist |
 | Data only, no target | Quality/split checks run; target checks skip | Input table(s) |
 | Large datasets beyond configured limits | Rejected; engine is in-memory | Reduce data deliberately or use an out-of-core system |
-| NumPy arrays / separate X and y / sparse matrices | Not directly supported | Construct a named DataFrame first |
+| Dense NumPy arrays / separate X and y | Supported through pandas extra | 2D features, 1D labels with matching length; generated array column names |
+| Sparse matrices | Not directly supported | Deliberately convert a bounded subset to a named DataFrame |
 | Polars, Spark, SQL handles, Excel | No native adapter | Explicitly export/convert to a supported format |
 | Nested JSON, lists in cells, images, text semantics | Not supported as model-specific analyses | Separate domain checks/tools |
-| Business-day/monthly calendars, variable label windows, rolling retraining | Not fully supported | Separate fold contracts/custom checks |
+| Business-day/monthly cadence, rolling retraining | Not fully supported | Separate fold contracts/custom checks; variable label availability itself is supported |
 
 ## Normalization and limits
 
