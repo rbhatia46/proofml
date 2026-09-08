@@ -48,11 +48,20 @@ Repeated measurements, small subgroups, and many checked features need expert
 interpretation. Numeric class encodings with more than two classes never
 receive Pearson-based association findings.
 
-## Explicitly outside version 0.4
+## Additional domains
+
+Text has four checks: `text_quality`, `text_labels`, `text_overlap`, and
+`text_near_duplicates`. Retrieval has three: `retrieval_inputs`,
+`retrieval_corpus`, and `retrieval_ranking`. Use `proofml checks --domain text`
+or `proofml checks --domain retrieval` to list them. Run audits through the
+Python API; the CLI's `audit` command remains tabular/forecasting-only.
+See the [text contract](text.md) and [retrieval contract](retrieval.md).
+
+## Explicitly outside version 0.5
 
 No notebook execution, AST inspection, scikit-learn estimator introspection,
 preprocessing-order detection, fairness assessment, p-value validity audit,
-NLP/image checks, automatic fixes, model training, or LLM explanation layer.
+semantic text/image checks, automatic fixes, model training, or LLM explanation layer.
 Forecasting checks cover fixed sampling durations and declared label availability at a shared cutoff, not rolling
 retraining or feature-generation code.
 Future checks should earn inclusion through faulty and clean counterexamples.

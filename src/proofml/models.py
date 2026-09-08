@@ -1,6 +1,7 @@
 """Serializable contracts shared by checks and report renderers."""
 from __future__ import annotations
 from dataclasses import asdict, dataclass, field
+import math
 from typing import Any, Literal
 
 Severity = Literal["critical", "high", "medium", "low"]
@@ -36,6 +37,7 @@ class CheckResult:
     status: Status
     findings: tuple[Finding, ...] = ()
     reason: str = ""
+    metrics: dict[str, int | float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.status not in {"passed", "findings", "skipped", "error"}:
@@ -44,10 +46,15 @@ class CheckResult:
             raise ValueError("Only a findings result can contain findings, and it cannot be empty")
         if self.status in {"skipped", "error"} and not self.reason:
             raise ValueError("Skipped and error results require an explanation")
+        if self.metrics and self.status not in {"passed", "findings"}:
+            raise ValueError("Only completed checks may expose metrics")
+        for name, value in self.metrics.items():
+            if not isinstance(name, str) or not name or type(value) not in {int, float} or not math.isfinite(value):
+                raise ValueError("Metrics need nonempty names and finite numeric values")
 
     @classmethod
-    def complete(cls, check_id: str, findings: list[Finding]) -> CheckResult:
-        return cls(check_id, "findings" if findings else "passed", tuple(findings))
+    def complete(cls, check_id: str, findings: list[Finding], *, metrics: dict[str, int | float] | None = None) -> CheckResult:
+        return cls(check_id, "findings" if findings else "passed", tuple(findings), metrics=metrics or {})
 
 
 @dataclass(frozen=True)
@@ -75,7 +82,12 @@ class AuditReport:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return {**asdict(self), "summary": self.summary}
+        return {**asdict(self), "summary": self.summary, "metrics": self.metrics}
+
+    @property
+    def metrics(self) -> dict[str, dict[str, int | float]]:
+        """Measurements grouped by check ID; omitted checks have no measurements."""
+        return {check.check_id: dict(check.metrics) for check in self.checks if check.metrics}
 
     def save(self, output: str, *, overwrite: bool = False):
         """Save report.html and report.json in a directory; return both paths."""

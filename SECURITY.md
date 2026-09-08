@@ -1,6 +1,7 @@
 # Security and data handling
 
-ProofML's built-in checks read local scalar tabular data. They do not execute
+ProofML's built-in checks read local tabular data, document strings, and retrieval
+IDs/judgments. They do not execute
 notebooks, deserialize pickle models, call network services, or modify inputs.
 Reports contain column names, aggregates, configuration, and source hashes;
 these can still be sensitive. Store reports according to your data policy.

@@ -12,14 +12,17 @@ from .engine import audit
 from .models import SEVERITY_ORDER
 from .reporting import write_reports
 from ._version import __version__
+from .text import default_text_checks
+from .retrieval import default_retrieval_checks
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="proofml", description="Audit tabular ML data locally, with evidence and no API keys.")
+    parser = argparse.ArgumentParser(prog="proofml", description="Local ML audits with evidence and no API keys. Text/retrieval audits use the Python API.")
     parser.add_argument("--version", action="version", version=f"proofml {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
     listing = commands.add_parser("checks", help="List built-in check IDs")
     listing.add_argument("--task", choices=("classification", "regression", "forecasting"), default="classification")
+    listing.add_argument("--domain", choices=("tabular", "text", "retrieval"), default="tabular")
     run = commands.add_parser("audit", help="Audit a training dataset and optional test split")
     run.add_argument("train", type=Path)
     run.add_argument("--test", type=Path)
@@ -38,7 +41,9 @@ def main(argv: list[str] | None = None) -> int:
                          help="Exit 1 for findings at or above this severity (default: high)")
     args = parser.parse_args(argv)
     if args.command == "checks":
-        print("\n".join(check.id for check in default_checks(args.task)))
+        registry = {"tabular": lambda: default_checks(args.task), "text": default_text_checks,
+                    "retrieval": default_retrieval_checks}[args.domain]()
+        print("\n".join(check.id for check in registry))
         return 0
     try:
         if args.command == "demo":

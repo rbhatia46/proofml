@@ -2,11 +2,12 @@
 
 **Catch data problems before you trust your model's results.**
 
-ProofML audits tabular ML datasets for split overlap, unavailable predictors,
-suspicious target associations, missing labels, and distribution shifts. Every
-finding includes evidence and a next step. Every skipped check explains why.
+ProofML audits tabular ML data, forecasting datasets, text corpora, and
+search/RAG retrieval outputs. Catch contamination and broken evaluation
+assumptions before trusting results. Every finding includes evidence and a next
+step. Every skipped check explains why.
 
-**No API key. No LLM download. No account. No runtime dependencies for CSV.**
+**No API key. No model download. No account. Zero runtime dependencies for CSV, text, and retrieval.**
 
 ## Three lines to an audit
 
@@ -33,6 +34,34 @@ report = audit(X_train, X_test, y=y_train, y_test=y_test)
 No config file is required. Display `report` in a notebook for an embedded HTML
 report, or `print(report)` for findings and check coverage. Start with
 [the short API guide](docs/api.md) and [the compatibility matrix](docs/compatibility.md).
+
+## One report interface across workflows
+
+| Workflow | Entry point | Problems to review |
+| --- | --- | --- |
+| Tabular classification/regression | `audit(train, test, target="label")` | Split leakage, missing labels, schema/category changes, drift |
+| Forecasting | `audit(..., task="forecasting")` | Series integrity, cadence, labels crossing the evaluation cutoff |
+| Text/NLP corpora | `audit_text(train_texts, test_texts)` | Empty documents, exact/lexical duplicates, inconsistent labels |
+| Search/RAG retrieval | `audit_retrieval(retrieved, relevant, k=5)` | Ranking quality, missing judgments, duplicate or unreachable IDs |
+
+```python
+from proofml import audit_text, audit_retrieval
+
+text_report = audit_text(train_texts, test_texts)
+retrieval_report = audit_retrieval(retrieved_ids, relevant_ids, k=5, min_recall=0.8)
+retrieval_report.raise_for_issues(require_checks=("retrieval_ranking",))
+```
+
+All reports support `.save()`, `.findings`, `.checks`, `.metrics`, `.to_dict()`,
+notebook display, and the same CI gate. Choose thresholds for your project;
+the example's 0.8 recall is not a universal standard. Query-ID mappings are
+recommended for retrieval to avoid accidental positional misalignment.
+
+See the [text guide](docs/text.md), [retrieval guide](docs/retrieval.md), and
+[runnable offline example](examples/text_and_retrieval.py). Text checks do not
+understand meaning; retrieval metrics do not judge generated answers.
+
+## Install
 
 **Publication status:** a public PyPI release is not yet verified. Install from
 this checkout with `python -m pip install .`, or from the supplied `.whl` file.
@@ -181,20 +210,25 @@ The current release is a deterministic audit toolkit; it has no LLM planner.
 
 ## Honest scope
 
-ProofML supports scalar tabular classification and regression inputs, and
-forecasting datasets with a shared holdout cutoff.
+ProofML supports scalar tabular classification/regression, forecasting with a
+shared holdout cutoff, text corpus integrity, and binary-judgment retrieval evaluation.
 It does not certify a model or generate a pseudo-precise trust score. Strong
 correlation is a suspicion, not proof of leakage. No-finding reports do not
 imply that skipped checks passed.
 
-Version 0.4 does not inspect notebooks, fitted pipelines, preprocessing order,
-fairness, NLP/images, or arbitrary project code. It can audit exported inputs
+Version 0.5 does not inspect notebooks, fitted pipelines, preprocessing order,
+fairness, images/audio/video, text semantics, or arbitrary project code. It can audit exported inputs
 from a scikit-learn workflow, but does not introspect the estimator. Those
 capabilities require separate adapters and validated checks.
 
-Inputs are read only; built-in reports omit raw row values. Column names,
+This is a pre-1.0 package, not a substitute for scikit-learn, a model-quality
+certification, or a claim of community adoption. See the
+[design principles and roadmap](docs/design.md) for how new domains earn support.
+
+Inputs are read only; built-in reports omit raw row/document/ID values. Column names,
 statistics, and configuration remain visible. Default limits are 200,000 rows
-and 100 MB per input, with no silent sampling. The engine is in-memory.
+and 100 MB per tabular/text input, with no silent sampling. Retrieval and text
+similarity have additional [documented budgets](docs/compatibility.md). The engine is in-memory.
 
 ## Test and contribute
 

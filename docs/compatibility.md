@@ -18,10 +18,13 @@ table successfully is different from proving that its ML evaluation is valid.
 | Dense NumPy arrays / separate X and y | Supported through pandas extra | 2D features, 1D labels with matching length; generated array column names |
 | Sparse matrices | Not directly supported | Deliberately convert a bounded subset to a named DataFrame |
 | Polars, Spark, SQL handles, Excel | No native adapter | Explicitly export/convert to a supported format |
-| Nested JSON, lists in cells, images, text semantics | Not supported as model-specific analyses | Separate domain checks/tools |
+| Text classification / NLP corpora | Document integrity, exact/lexical contamination, optional single-label checks | `audit_text`: ordered strings, optional labels; [contract](text.md) |
+| Search / RAG retrieval outputs | Binary relevance metrics, result integrity, corpus ID checks | `audit_retrieval`: ranked IDs and positive judgments; [contract](retrieval.md) |
+| Text meaning / generated-answer quality | Not assessed | Semantic or human evaluation outside this package |
+| Nested table cells, images, audio, video | Not supported as model-specific analyses | Separate domain checks/tools |
 | Business-day/monthly cadence, rolling retraining | Not fully supported | Separate fold contracts/custom checks; variable label availability itself is supported |
 
-## Normalization and limits
+## Tabular normalization and limits
 
 CSV uses comma separators, UTF-8 (BOM accepted), and stripped cell strings.
 Empty or whitespace-only CSV cells are missing; literal `NA`/`NULL` are not
@@ -43,7 +46,10 @@ Unusual correlation does not prove leakage. Identical rows may be legitimate
 repeated measurements. Missing labels may be expected in inference data.
 The tool cannot know whether a feature was available when a real prediction was
 made unless you declare that fact. It does not inspect model code or fit order,
-evaluate model performance, certify fairness, or guarantee absence of leakage.
+inspect trained-model behavior, certify fairness, or guarantee absence of leakage.
+Retrieval metrics assess exported rankings against supplied judgments, not
+generated answers or the quality/completeness of those judgments. Text similarity
+is lexical, not semantic. Check-specific coverage and limits remain explicit.
 
 The tests validate implementation contracts and synthetic failure/clean cases.
 They do not measure real-world recall or false-positive rates across all domains.

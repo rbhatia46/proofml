@@ -24,6 +24,11 @@ def render_html(report: AuditReport) -> str:
 <p class="fix"><strong>Next step:</strong> {escape(finding.recommendation)}</p>
 <details><summary>Evidence · {escape(finding.code)}</summary><table>{evidence}</table></details></article>''')
     coverage = "".join(f'<tr><th>{escape(c.check_id)}</th><td>{escape(c.status)}</td><td>{escape(c.reason)}</td></tr>' for c in report.checks)
+    measurements = "".join(f'<tr><th>{escape(check_id)}</th><td>{escape(name)}</td><td>{escape(value)}</td></tr>'
+                           for check_id, metrics in report.metrics.items() for name, value in metrics.items())
+    metrics_section = ('<h2>Measurements</h2><section class="panel table-wrap"><table><thead>'
+                       '<tr><th>Check</th><th>Metric</th><th>Value</th></tr></thead><tbody>'
+                       + measurements + '</tbody></table></section>') if measurements else ""
     manifests = "".join(f'<tr><th>{escape(split)}</th><td>{data["rows"]:,} rows · {len(data["columns"])} columns</td><td class="hash">{escape(data["sha256"])}</td></tr>' for split, data in report.datasets.items())
     body = "".join(findings) or '<article><h3>No findings from the checks that ran</h3><p>Review skipped and errored checks below before interpreting this result.</p></article>'
     return f'''<!doctype html>
@@ -50,6 +55,7 @@ th{{font-weight:600}}.table-wrap{{overflow-x:auto}}.hash{{font-family:monospace;
 <section class="metrics" aria-label="Finding severity counts">{cards}</section>
 <p class="note">This is a dataset audit, not a model certification. Suspicious associations need investigation. No arbitrary trust score is assigned.</p>
 <h2>Findings &amp; recommended actions</h2>{body}
+{metrics_section}
 <h2>Check coverage</h2><section class="panel table-wrap"><table><thead><tr><th>Check</th><th>Status</th><th>Reason / limitation</th></tr></thead><tbody>{coverage}</tbody></table></section>
 <h2>Reproducibility manifest</h2><section class="panel table-wrap"><table><thead><tr><th>Split</th><th>Shape</th><th>Source SHA-256</th></tr></thead><tbody>{manifests}</tbody></table>
 <details><summary>Audit configuration</summary><pre>{escape(json.dumps(report.config, indent=2))}</pre></details></section>

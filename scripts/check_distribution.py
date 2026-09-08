@@ -27,7 +27,9 @@ def verify(directory):
             run("-m", "proofml", "demo", "--problem", problem, "--clean", "--output", problem)
         (root / "tiny.csv").write_text("x,y\n1,0\n2,1\n3,0\n", encoding="utf-8")
         run("-c", "from proofml import audit; r = audit('tiny.csv', target='y'); r.save('api'); r.raise_for_issues(); print(r)")
-        print("Installed wheel, versions, bundled demos, and short API verified.")
+        run("-c", "from proofml import audit_text; r = audit_text(['a red bird flies'], ['snow covers every mountain']); r.save('text'); r.raise_for_issues(require_checks=('text_overlap', 'text_near_duplicates')); print(r)")
+        run("-c", "from proofml import audit_retrieval; r = audit_retrieval({'q1': ['doc1']}, {'q1': {'doc1'}}, k=1, min_recall=1); r.save('retrieval'); r.raise_for_issues(require_checks=('retrieval_ranking',)); assert r.metrics['retrieval_ranking']['recall@1'] == 1; print(r)")
+        print("Installed wheel, versions, bundled demos, and all domain APIs verified without runtime dependencies.")
 
 
 if __name__ == "__main__":

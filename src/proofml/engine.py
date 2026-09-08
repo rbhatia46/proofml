@@ -1,8 +1,6 @@
 """Deterministic orchestration. A failed check never becomes a passing audit."""
 from __future__ import annotations
-import json
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Iterable
 from typing import Any
 from ._version import __version__
@@ -10,8 +8,9 @@ from .checks import Check, default_checks
 from .config import AuditConfig
 from .context import AuditContext
 from .data import load_dataset
-from .models import AuditReport, CheckResult
+from .models import AuditReport
 from .inputs import attach_target
+from .core import run_checks, validate_checks
 
 
 def audit(train: Any, test: Any = None, *, target: str | None = None,
@@ -59,12 +58,7 @@ def audit(train: Any, test: Any = None, *, target: str | None = None,
     config = AuditConfig(**values)
     train = attach_target(train, y, config.target, config)
     test = attach_target(test, y_test, config.target, config)
-    registry = tuple(default_checks(config.task) if checks is None else checks)
-    ids = [check.id for check in registry]
-    if any(not isinstance(i, str) or not i for i in ids) or len(ids) != len(set(ids)):
-        raise ValueError("Check IDs must be nonempty and unique")
-    if set(config.disabled_checks) - set(ids):
-        raise ValueError("disabled_checks contains an unknown check ID")
+    registry = validate_checks(default_checks(config.task) if checks is None else checks, config.disabled_checks)
     train_data = load_dataset(train, config)
     test_data = load_dataset(test, config) if test is not None else None
     for column in (config.target, config.entity_id, config.time_column, config.series_id,
@@ -72,21 +66,7 @@ def audit(train: Any, test: Any = None, *, target: str | None = None,
         if column and column not in train_data.columns:
             raise ValueError(f"Declared column absent from training data: {column}")
     ctx = AuditContext(train_data, test_data, config)
-    results = []
-    for check in registry:
-        if check.id in config.disabled_checks:
-            results.append(CheckResult(check.id, "skipped", reason="Disabled explicitly in configuration."))
-            continue
-        try:
-            result = check.run(ctx)
-            if not isinstance(result, CheckResult) or result.check_id != check.id:
-                raise ValueError("Invalid plugin result")
-            # Reject non-JSON evidence and nonfinite numbers before rendering.
-            from dataclasses import asdict
-            json.dumps(asdict(result), allow_nan=False)
-            results.append(result)
-        except Exception as error:
-            results.append(CheckResult(check.id, "error", reason=f"Check raised {type(error).__name__}; run it directly to debug with your data."))
+    results = run_checks(ctx, registry, config.disabled_checks)
     datasets = {"train": train_data.metadata()}
     if test_data is not None:
         datasets["test"] = test_data.metadata()

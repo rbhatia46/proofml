@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0 — Unreleased
+
+- Added dependency-free `audit_text` for document integrity, single-label
+  consistency, normalized split overlap, and bounded lexical near-duplicate checks.
+- Added dependency-free `audit_retrieval` for framework-neutral binary relevance
+  evaluation, query-key alignment, corpus integrity, and explicit CI thresholds.
+- Extracted a shared typed check runner and preserved the existing tabular API.
+- Added finite numeric check metrics, exposed consistently in Python, HTML, and
+  JSON reports without raw documents, labels, or query/document IDs.
+- Added independent reference cases, resource/privacy tests, domain guides,
+  an offline example, and installed-wheel smoke tests for every domain.
+
 ## 0.4.0 — Unreleased
 
 - Added dense NumPy and separate X/y inputs with explicit pandas index checks.

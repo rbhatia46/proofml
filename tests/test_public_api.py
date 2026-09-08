@@ -78,6 +78,12 @@ class PublicApiTests(unittest.TestCase):
         self.assertIn(__version__, captured.getvalue())
         self.assertEqual(audit(self.data).tool_version, __version__)
 
+    def test_cli_lists_each_domain(self):
+        for domain, expected in (("text", "text_overlap"), ("retrieval", "retrieval_ranking"), ("tabular", "split_overlap")):
+            with self.subTest(domain=domain), contextlib.redirect_stdout(io.StringIO()) as captured:
+                self.assertEqual(main(["checks", "--domain", domain]), 0)
+                self.assertIn(expected, captured.getvalue().splitlines())
+
 
 @unittest.skipUnless(importlib.util.find_spec("pandas"), "optional pandas not installed")
 class DataFrameApiTests(unittest.TestCase):

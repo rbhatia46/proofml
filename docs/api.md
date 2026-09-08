@@ -1,5 +1,13 @@
 # Public API: start small, add context when needed
 
+## Choose a domain
+
+`audit` handles tabular/forecasting inputs. `audit_text` handles ordered document
+strings and optional class labels; `audit_retrieval` handles ranked IDs and
+binary relevance judgments. All are importable from `proofml` and return the
+same `AuditReport`. They do not guess a modality from arbitrary objects.
+See the [text contract](text.md) and [retrieval contract](retrieval.md).
+
 ## Files or DataFrames
 
 ```python
@@ -67,6 +75,7 @@ print(report)                         # Summary includes skipped and errored che
 report.findings                      # Severity-sorted Finding objects
 report.checks                        # Executed, skipped, and failed check results
 report.to_dict()                     # JSON-compatible report
+report.metrics                       # Numeric measurements grouped by check ID
 report.to_frame()                    # Optional pandas table, one row per finding
 report.save("run-001")               # Writes report.html and report.json; returns both paths
 report.save("run-001", overwrite=True)
