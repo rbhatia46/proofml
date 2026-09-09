@@ -147,8 +147,9 @@ an inadequate old score should not prevent a valid improvement. A supplied
 baseline is always compatibility-checked, even with no regression rule.
 
 Strict metric comparisons currently support **retrieval only**. Policies work
-across all report types. This release does not add slice evaluation, statistical
-significance, per-case debugging, saved-prediction scoring, or agent trace checks.
+across all report types. Version 0.7 adds [slice/suite policies](slices.md) on top
+of this contract. Statistical significance, per-case debugging, saved-prediction
+scoring, and agent trace checks remain outside the implemented scope.
 
 ## Version control and CI
 

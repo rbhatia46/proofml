@@ -19,6 +19,9 @@ fixed sequence of checks “intelligent agents” would overstate its capabiliti
 | `policy.py` | Reusable evidence/quality/regression requirements and structured decisions | Infer production thresholds or promote baselines |
 | `comparison.py` | Strict retrieval evaluation compatibility and metric changes | Compare unverifiable benchmarks |
 | `snapshots.py` | Bounded, validated JSON loading and atomic decision/policy writes | Execute serialized code or authenticate report authors |
+| `suite.py` | Named report collections, required populations, per-report policies and JUnit | Pool overlapping populations or infer cohorts |
+| `retrieval/slices.py` | Validate groups/subsets, reuse loaded data, produce a bounded suite | Silently drop unknown IDs or empty requested slices |
+| `suite_reporting.py` | Offline per-report metric/coverage summary | Claim a release decision without a policy |
 | `text/` | Text config, bounded document adapter, context, independent checks, API | Load a model or infer semantics |
 | `retrieval/` | Retrieval config, ID adapter, context, integrity/metric checks, API | Infer relevance or score generated answers |
 | `models.py` | Versioned report contracts | Assign an arbitrary trust score |

@@ -4,6 +4,7 @@ import sys
 
 from .models import AuditReport
 from .policy import AuditPolicy
+from .suite import AuditSuite, SuitePolicy
 
 
 def add_gate_parser(commands):
@@ -14,6 +15,7 @@ def add_gate_parser(commands):
     gate.add_argument("--output", type=Path, help="Decision JSON file")
     gate.add_argument("--junit", type=Path, help="JUnit XML file")
     gate.add_argument("--overwrite", action="store_true")
+    gate.add_argument("--suite", action="store_true", help="Read suite.json and a SuitePolicy instead of a single report")
 
 
 def run_gate(args):
@@ -26,9 +28,10 @@ def run_gate(args):
             raise ValueError("Gate output collides with an input or another output")
         if not args.overwrite and any(p.exists() or p.is_symlink() for p in outputs):
             raise FileExistsError("Gate output exists; use a new path or --overwrite")
-        policy = AuditPolicy.from_file(args.policy)
-        report = AuditReport.load(args.report)
-        baseline = AuditReport.load(args.baseline) if args.baseline is not None else None
+        policy_type, report_type = (SuitePolicy, AuditSuite) if args.suite else (AuditPolicy, AuditReport)
+        policy = policy_type.from_file(args.policy)
+        report = report_type.load(args.report)
+        baseline = report_type.load(args.baseline) if args.baseline is not None else None
         decision = policy.evaluate(report, baseline=baseline)
         if args.output is not None:
             decision.save(args.output, overwrite=args.overwrite)
@@ -40,4 +43,9 @@ def run_gate(args):
     print(f"ProofML release gate: {decision.status}")
     for issue in decision.issues:
         print(f"[{issue.code}] {issue.message}")
+    if args.suite:
+        for name, result in decision.results.items():
+            print(f"[{name}] {result.status}")
+            for issue in result.issues:
+                print(f"  [{issue.code}] {issue.message}")
     return 0 if decision.passed else 1 if decision.status == "failed" else 2

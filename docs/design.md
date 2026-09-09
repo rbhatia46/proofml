@@ -45,9 +45,12 @@ pipeline; no workflow scheduler or autonomous agent is required.
 
 ## What must happen before a stable 1.0
 
-Version 0.6 adds evidence-aware policies and strict retrieval baseline comparison
-as the first release-decision layer. This does not implement the remaining
-roadmap or establish production maturity. See [the policy contract](release-gates.md).
+Version 0.6 adds evidence-aware policies and strict retrieval baseline comparison.
+Version 0.7 adds explicit retrieval slices and named audit suites, keeping each
+cohort's or fold's evidence separate. Missing cohorts and insufficient evaluated
+populations can block a release even when the overall score improves. See
+[the policy contract](release-gates.md) and [slice evaluation](slices.md).
+These features do not establish production maturity or statistical significance.
 
 - Gather reproducible failure/clean cases from independent users and domains;
   measure false positives and missed failures, not just unit-test counts.

@@ -85,6 +85,11 @@ It cannot detect contamination from arbitrary hidden training corpora.
 
 ## Budgets and extension
 
+For cohort-specific evaluation and regression gates, use
+[`audit_retrieval_slices`](slices.md). It loads the source data once and reuses
+the corpus across named reports. Query-ID mapping inputs are canonically ordered
+in 0.7 so floating-point accumulation is stable across dictionary insertion orders.
+
 Reuse `RetrievalConfig`, or supply its fields as direct keywords. Defaults:
 `k=10`, `max_queries=100000`, `max_ids_per_query=10000` for each ranking/judgment
 list, `max_corpus_ids=1000000`, and `max_bytes=100000000` summed over ASCII-escaped
@@ -92,7 +97,8 @@ JSON query-ID/document-ID values across the evaluation and corpus. Count/byte
 limits reject the whole input without sampling. All data stays in memory; Python
 objects, sets, and serialization buffers can require substantially more memory.
 
-Metrics cost O(sum of top-k ranking lengths plus ideal gain lengths); ingestion
+Metrics cost O(sum of top-k ranking lengths plus ideal gain lengths); mapping
+inputs additionally sort query IDs in O(Q log Q). Ingestion
 and integrity checks read all supplied IDs. Sorted set fingerprints add sorting
 cost for judgments/corpus. Budgets are limits, not distributed execution.
 

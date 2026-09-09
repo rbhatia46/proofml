@@ -20,6 +20,8 @@ table successfully is different from proving that its ML evaluation is valid.
 | Polars, Spark, SQL handles, Excel | No native adapter | Explicitly export/convert to a supported format |
 | Text classification / NLP corpora | Document integrity, exact/lexical contamination, optional single-label checks | `audit_text`: ordered strings, optional labels; [contract](text.md) |
 | Search / RAG retrieval outputs | Binary relevance metrics, result integrity, corpus ID checks | `audit_retrieval`: ranked IDs and positive judgments; [contract](retrieval.md) |
+| Retrieval cohorts / overlapping slices | Per-slice metrics, coverage, and compatible-baseline gates | `audit_retrieval_slices`: explicit query-ID groups/subsets; [contract](slices.md) |
+| Cross-validation folds / multi-stage pipelines | Generic report suite with shared/overridden policies | Build reports explicitly, then `AuditSuite` / `SuitePolicy`; no automatic fold pooling |
 | Text meaning / generated-answer quality | Not assessed | Semantic or human evaluation outside this package |
 | Nested table cells, images, audio, video | Not supported as model-specific analyses | Separate domain checks/tools |
 | Business-day/monthly cadence, rolling retraining | Not fully supported | Separate fold contracts/custom checks; variable label availability itself is supported |

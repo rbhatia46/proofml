@@ -80,7 +80,7 @@ def report_from_dict(value):
             raise ValueError("Invalid dataset columns")
         if not isinstance(data.get("sha256"), str) or not re.fullmatch(r"[0-9a-f]{64}", data["sha256"]):
             raise ValueError("Invalid dataset fingerprint")
-    if not isinstance(value.get("checks"), list):
+    if not isinstance(value.get("checks"), (list, tuple)):
         raise ValueError("Report checks must be an array")
     checks = []
     for record in value["checks"]:
@@ -88,7 +88,7 @@ def report_from_dict(value):
         if not isinstance(record.get("check_id"), str) or not record["check_id"] or not isinstance(record.get("reason", ""), str):
             raise ValueError("Invalid check identity or reason")
         findings = []
-        if not isinstance(record.get("findings", []), list):
+        if not isinstance(record.get("findings", []), (list, tuple)):
             raise ValueError("Check findings must be an array")
         for finding in record.get("findings", []):
             _object(finding, {f.name for f in fields(Finding)})
@@ -96,7 +96,7 @@ def report_from_dict(value):
                 if not isinstance(finding.get(field), str):
                     raise ValueError("Invalid finding text")
             columns = finding.get("columns", [])
-            if not isinstance(columns, list) or any(not isinstance(c, str) for c in columns) or not isinstance(finding.get("evidence", {}), dict):
+            if not isinstance(columns, (list, tuple)) or any(not isinstance(c, str) for c in columns) or not isinstance(finding.get("evidence", {}), dict):
                 raise ValueError("Invalid finding evidence or columns")
             findings.append(Finding(**{**finding, "columns": tuple(columns)}))
         coverage = record.get("coverage")

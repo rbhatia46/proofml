@@ -28,6 +28,12 @@ def _above(value, limit):
     return value > limit and (limit == 0 or not math.isclose(value, limit, rel_tol=1e-12, abs_tol=0))
 
 
+def _xml_text(value):
+    """Represent XML-disallowed code points explicitly instead of emitting bad XML."""
+    return "".join(char if char in "\t\n\r" or 0x20 <= ord(char) <= 0xD7FF or 0xE000 <= ord(char) <= 0xFFFD or 0x10000 <= ord(char) <= 0x10FFFF
+                   else f"\\u{ord(char):04x}" for char in value)
+
+
 @dataclass(frozen=True)
 class GateIssue:
     code: str
@@ -79,10 +85,10 @@ class GateResult:
         """One policy decision becomes one CI test; unassessable evidence is an error."""
         suite = ET.Element("testsuite", name="proofml.release", tests="1",
                            failures=str(int(self.status == "failed")), errors=str(int(self.status in {"insufficient", "incompatible"})))
-        case = ET.SubElement(suite, "testcase", classname="proofml", name=self.policy.name)
+        case = ET.SubElement(suite, "testcase", classname="proofml", name=_xml_text(self.policy.name))
         if not self.passed:
             node = ET.SubElement(case, "failure" if self.status == "failed" else "error", message=f"Release gate {self.status}")
-            node.text = "\n".join(f"{issue.code}: {issue.message}" for issue in self.issues)
+            node.text = _xml_text("\n".join(f"{issue.code}: {issue.message} {json.dumps(issue.evidence, sort_keys=True)}" for issue in self.issues))
         return ET.tostring(suite, encoding="unicode", xml_declaration=True)
 
     def save_junit(self, path, *, overwrite=False):
@@ -148,7 +154,10 @@ class AuditPolicy:
 
     @classmethod
     def from_file(cls, path, *, max_bytes=1_000_000):
-        value = read_json(path, max_bytes=max_bytes)
+        return cls.from_dict(read_json(path, max_bytes=max_bytes))
+
+    @classmethod
+    def from_dict(cls, value):
         if not isinstance(value, dict) or value.get("schema_version") != "1.0":
             raise ValueError("Policy requires schema_version '1.0'")
         if set(value) - {f.name for f in fields(cls)} - {"schema_version"}:
@@ -231,6 +240,6 @@ class AuditPolicy:
                     if not _finite(deterioration):
                         add("metric_difference_nonfinite", "insufficient", f"Metric difference for {path} exceeds finite numeric range.", metric=path)
                     elif _above(deterioration, tolerance):
-                        add("metric_regression", "failed", f"{path} regressed beyond {rule} tolerance.", metric=path,
+                        add("metric_regression", "failed", f"{path} changed from {before:g} to {after:g}, exceeding {rule} tolerance {tolerance:g}.", metric=path,
                             baseline=before, candidate=after, deterioration=deterioration, tolerance=tolerance, rule=rule)
         return GateResult(self, report, baseline, tuple(issues), comparison)

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0 — Unreleased
+
+- Added bounded `audit_retrieval_slices` for query-ID groups or explicit,
+  overlapping slices, reusing validated inputs and corpus storage.
+- Added general `AuditSuite` / `SuitePolicy` collections for per-report evidence
+  and regression requirements, missing-population checks, and policy overrides.
+- Added offline suite summaries, saved suite/policy loading, tidy pandas metric
+  tables, and `proofml gate --suite` with one JUnit case per report.
+- Stabilized retrieval accumulation across mapping insertion orders, included
+  numeric rule evidence in JUnit, and escaped XML-disallowed control characters.
+- Added hidden-cohort-regression, empty-slice, identity, budget, privacy, snapshot,
+  CLI, and installed-wheel regression tests plus a reproducible teaching example.
+
 ## 0.6.0 — Unreleased
 
 - Added reusable `AuditPolicy` gates for required checks, row counts, declared

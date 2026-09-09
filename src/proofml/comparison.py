@@ -50,6 +50,8 @@ def compare_reports(candidate: AuditReport, baseline: AuditReport) -> ReportComp
     if not isinstance(candidate, AuditReport) or not isinstance(baseline, AuditReport):
         raise TypeError("Comparison requires AuditReport instances")
     reasons = []
+    if candidate.schema_version != "1.0" or baseline.schema_version != "1.0":
+        reasons.append("Unsupported report schema for comparison.")
     if candidate.schema_version != baseline.schema_version or candidate.tool_version != baseline.tool_version:
         reasons.append("Report schema and tool versions must match.")
     if json.dumps(candidate.config, sort_keys=True, allow_nan=False) != json.dumps(baseline.config, sort_keys=True, allow_nan=False):

@@ -8,6 +8,10 @@ binary relevance judgments. All are importable from `proofml` and return the
 same `AuditReport`. They do not guess a modality from arbitrary objects.
 See the [text contract](text.md) and [retrieval contract](retrieval.md).
 
+For cohort evaluation, `audit_retrieval_slices` returns an `AuditSuite` of standard
+reports. Use `SuitePolicy` to apply per-report requirements and baseline gates.
+Manual suites support other domains and folds; see [slice and suite APIs](slices.md).
+
 ## Files or DataFrames
 
 ```python

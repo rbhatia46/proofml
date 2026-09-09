@@ -20,6 +20,11 @@ class RetrievalData:
     output_fingerprint: str
     corpus_fingerprint: str
     alignment: str
+    # IDs are retained only in the private input context to select slices. They
+    # are deliberately absent from metadata(), report JSON, and HTML.
+    query_ids: tuple[str | int, ...]
+    case_sizes: tuple[int, ...]
+    corpus_size: int
 
     def metadata(self):
         return {"rows": len(self.retrieved), "columns": ["retrieved", "relevant"],
@@ -60,7 +65,10 @@ def load_retrieval(retrieved, relevant, corpus_ids, config: RetrievalConfig) -> 
             raise ValueError("Retrieved and relevant mappings must contain identical query IDs")
         if any(not isinstance(key, str) or not key.strip() for key in retrieved):
             raise TypeError("Query IDs must be nonempty strings")
-        triples = ((key, retrieved[key], relevant[key]) for key in retrieved)
+        # Canonical query order also stabilizes floating-point accumulation.
+        # Otherwise equivalent mappings could trigger a zero-tolerance regression
+        # merely because their insertion orders differ.
+        triples = ((key, retrieved[key], relevant[key]) for key in sorted(retrieved))
     else:
         sentinel = object()
         pairs = zip_longest(ordered_iterable(retrieved, "retrieved"), ordered_iterable(relevant, "relevant"), fillvalue=sentinel)
@@ -72,9 +80,10 @@ def load_retrieval(retrieved, relevant, corpus_ids, config: RetrievalConfig) -> 
                 yield None, rank, truth
 
         triples = positional()
-    rankings, judgments = [], []
+    rankings, judgments, query_ids, case_sizes = [], [], [], []
     evaluation_parts, output_parts = [], []
     for query_id, rank, truth in triples:
+        case_start_size = size
         if len(rankings) >= config.max_queries:
             raise ValueError("Retrieval input exceeds max_queries; no sampling was performed")
         if query_id is not None and len(query_id) > config.max_bytes:
@@ -87,20 +96,48 @@ def load_retrieval(retrieved, relevant, corpus_ids, config: RetrievalConfig) -> 
         # Sort per-case digests later so mapping insertion order is irrelevant.
         # Stable query IDs and judgments identify the benchmark, not its outputs.
         identity = query_id if keyed else len(rankings)
+        query_ids.append(identity)
         evaluation_parts.append(sha256(json.dumps([identity, sorted(judgment)], separators=(",", ":")).encode()).digest())
         output_parts.append(sha256(json.dumps([identity, ranking], separators=(",", ":")).encode()).digest())
         digest.update(json.dumps([query_id, ranking, sorted(judgment)], separators=(",", ":")).encode("utf-8") + b"\n")
         rankings.append(ranking)
         judgments.append(judgment)
+        case_sizes.append(size - case_start_size)
     if not rankings:
         raise ValueError("Retrieval input must contain at least one query")
+    before_corpus_size = size
     corpus = frozenset(identifiers(corpus_ids, config.max_corpus_ids, ranked=False)) if corpus_ids is not None else None
     digest.update(json.dumps(sorted(corpus) if corpus is not None else None, separators=(",", ":")).encode("utf-8"))
     evaluation_hash = sha256(b"proofml:retrieval:evaluation:v1\n" + b"".join(sorted(evaluation_parts))).hexdigest()
     output_hash = sha256(b"proofml:retrieval:outputs:v1\n" + b"".join(sorted(output_parts))).hexdigest()
     corpus_hash = sha256(json.dumps(sorted(corpus) if corpus is not None else None, separators=(",", ":")).encode()).hexdigest()
     return RetrievalData(tuple(rankings), tuple(judgments), corpus, digest.hexdigest(), size,
-                         evaluation_hash, output_hash, corpus_hash, "query_id" if keyed else "position")
+                         evaluation_hash, output_hash, corpus_hash, "query_id" if keyed else "position",
+                         tuple(query_ids), tuple(case_sizes), size - before_corpus_size)
+
+
+def select_retrieval(data: RetrievalData, indices: tuple[int, ...]) -> RetrievalData:
+    """Build an immutable subset without reloading or rehashing the shared corpus.
+
+    Empty subsets are meaningful requested populations: ranking coverage is 0/0
+    and its check skips, so a release policy can distinguish absent evidence.
+    """
+    rankings = tuple(data.retrieved[i] for i in indices)
+    judgments = tuple(data.relevant[i] for i in indices)
+    query_ids = tuple(data.query_ids[i] for i in indices)
+    sizes = tuple(data.case_sizes[i] for i in indices)
+    evaluation_parts, output_parts = [], []
+    for key, ranking, judgment in zip(query_ids, rankings, judgments):
+        evaluation_parts.append(sha256(json.dumps([key, sorted(judgment)], separators=(",", ":")).encode()).digest())
+        output_parts.append(sha256(json.dumps([key, ranking], separators=(",", ":")).encode()).digest())
+    evaluation_hash = sha256(b"proofml:retrieval:evaluation:v1\n" + b"".join(sorted(evaluation_parts))).hexdigest()
+    output_hash = sha256(b"proofml:retrieval:outputs:v1\n" + b"".join(sorted(output_parts))).hexdigest()
+    # Subsets have a composite identity, not original input bytes. The separate
+    # benchmark/output fingerprints use the same algorithm as an unsliced run.
+    fingerprint = sha256(json.dumps(["retrieval_subset.v1", evaluation_hash, output_hash, data.corpus_fingerprint]).encode()).hexdigest()
+    return RetrievalData(rankings, judgments, data.corpus_ids, fingerprint, sum(sizes) + data.corpus_size,
+                         evaluation_hash, output_hash, data.corpus_fingerprint, data.alignment,
+                         query_ids, sizes, data.corpus_size)
 
 
 @dataclass(frozen=True)

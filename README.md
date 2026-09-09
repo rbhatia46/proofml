@@ -87,6 +87,29 @@ See [release policies, baseline comparisons, and JUnit CI output](docs/release-g
 The earlier `report.raise_for_issues()` retains its simple severity/completion
 semantics; it does not automatically require a sufficient evaluated population.
 
+## Catch regressions hidden by an average
+
+```python
+from proofml import audit_retrieval_slices, AuditPolicy, SuitePolicy
+
+suite = audit_retrieval_slices(retrieved_ids, relevant_ids, groups=query_to_language, k=5)
+policy = SuitePolicy(
+    default=AuditPolicy(min_coverage={"retrieval_ranking": 0.95},
+                        min_evaluated={"retrieval_ranking": 20},
+                        max_drop={"retrieval_ranking.recall@5": 0.02}),
+    require_reports=("overall", "english", "spanish"),
+)
+decision = policy.enforce(suite, baseline=approved_suite)
+```
+
+Each slice has its own population, metrics, and compatibility checks. An overall
+improvement cannot mask a slice failure under the declared policy. The thresholds
+above are illustrative, not universal. General `AuditSuite` collections also
+apply policies across tabular/text reports or cross-validation folds.
+
+See [slice-aware evaluation and CI](docs/slices.md) and the
+[runnable hidden-regression example](examples/slice_regression.py).
+
 ## Install
 
 **Publication status:** a public PyPI release is not yet verified. Install from
@@ -242,7 +265,7 @@ It does not certify a model or generate a pseudo-precise trust score. Strong
 correlation is a suspicion, not proof of leakage. No-finding reports do not
 imply that skipped checks passed.
 
-Version 0.6 does not inspect notebooks, fitted pipelines, preprocessing order,
+Version 0.7 does not inspect notebooks, fitted pipelines, preprocessing order,
 fairness, images/audio/video, text semantics, or arbitrary project code. It can audit exported inputs
 from a scikit-learn workflow, but does not introspect the estimator. Those
 capabilities require separate adapters and validated checks.
