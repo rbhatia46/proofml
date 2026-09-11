@@ -58,8 +58,6 @@ def main(argv: list[str] | None = None) -> int:
             train, test = Path(str(root.joinpath(prefix + "train.csv"))), Path(str(root.joinpath(prefix + "test.csv")))
             config_name = "forecast_config.json" if args.problem == "forecasting" else "config.json"
             config = AuditConfig.from_file(Path(str(root.joinpath(config_name))))
-            if args.clean:
-                config = replace(config, unavailable_features=())
         else:
             train, test = args.train, args.test
             config = AuditConfig.from_file(args.config) if args.config else AuditConfig()

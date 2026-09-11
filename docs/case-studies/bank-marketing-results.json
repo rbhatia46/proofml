@@ -1,0 +1,609 @@
+{
+  "schema_version": "1.0",
+  "dataset": "https://archive.ics.uci.edu/dataset/222/bank+marketing",
+  "download_url": "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip",
+  "citation": "Moro, S., Rita, P., & Cortez, P. (2014). Bank Marketing. UCI. DOI:10.24432/C5K306",
+  "license": "CC BY 4.0",
+  "archive_sha256": "e0bf5f5de5b846e2f18e9d90606637267d46dfa260e0f17bb12e605db5efbeb4",
+  "csv_sha256": "74adfc578bf77a7ff4bb1ba4a9f8709d9e3c6907342959c2c8416847e0afb4d8",
+  "csv_member": "bank-additional/bank-additional-full.csv",
+  "versions": {
+    "proofml": "0.7.1",
+    "pandas": "2.3.3",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.0",
+    "threadpoolctl": "3.6.0"
+  },
+  "python": "3.13.0",
+  "split": {
+    "method": "first 80% / final 20% in original UCI row order; no shuffling",
+    "train_rows": 32950,
+    "test_rows": 8238,
+    "train_positive_rate": 0.0637329286798179,
+    "test_positive_rate": 0.3083272638990046
+  },
+  "model": {
+    "estimator": "LogisticRegression",
+    "solver": "lbfgs",
+    "C": 1.0,
+    "max_iter": 4000,
+    "random_state": 42,
+    "numerical_threads": 1,
+    "tuning": "none",
+    "preprocessing": "train-only StandardScaler + OneHotEncoder(handle_unknown='ignore')"
+  },
+  "metrics": {
+    "duration_included": {
+      "roc_auc": 0.8210906299488977,
+      "average_precision": 0.5981489009974756,
+      "features": [
+        "age",
+        "duration",
+        "campaign",
+        "pdays",
+        "previous",
+        "emp.var.rate",
+        "cons.price.idx",
+        "cons.conf.idx",
+        "euribor3m",
+        "nr.employed",
+        "job",
+        "marital",
+        "education",
+        "default",
+        "housing",
+        "loan",
+        "contact",
+        "month",
+        "day_of_week",
+        "poutcome"
+      ],
+      "solver_iterations": 40
+    },
+    "duration_removed": {
+      "roc_auc": 0.7483210713525674,
+      "average_precision": 0.5268353785880779,
+      "features": [
+        "age",
+        "campaign",
+        "pdays",
+        "previous",
+        "emp.var.rate",
+        "cons.price.idx",
+        "cons.conf.idx",
+        "euribor3m",
+        "nr.employed",
+        "job",
+        "marital",
+        "education",
+        "default",
+        "housing",
+        "loan",
+        "contact",
+        "month",
+        "day_of_week",
+        "poutcome"
+      ],
+      "solver_iterations": 42
+    }
+  },
+  "availability_gate": {
+    "undeclared": "insufficient",
+    "duration_included": "failed",
+    "duration_removed": "passed"
+  },
+  "broader_gate_after_removal": "failed",
+  "findings": {
+    "undeclared": [
+      {
+        "code": "class_imbalance",
+        "severity": "medium",
+        "columns": [
+          "y"
+        ],
+        "evidence": {
+          "split": "train",
+          "classes": 2,
+          "minority_fraction": 0.0637329286798179,
+          "majority_baseline_accuracy": 0.936267071320182
+        }
+      },
+      {
+        "code": "duplicate_rows",
+        "severity": "medium",
+        "columns": [],
+        "evidence": {
+          "split": "train",
+          "extra_duplicate_rows": 10
+        }
+      },
+      {
+        "code": "duplicate_rows",
+        "severity": "medium",
+        "columns": [],
+        "evidence": {
+          "split": "test",
+          "extra_duplicate_rows": 2
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "cons.conf.idx"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.31913085700412724,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "cons.price.idx"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.6648406566262198,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "contact"
+        ],
+        "evidence": {
+          "method": "total_variation_distance",
+          "distance": 0.3058950251269055,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "emp.var.rate"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.8403641881638847,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "euribor3m"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.9879210925644917,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "month"
+        ],
+        "evidence": {
+          "method": "total_variation_distance",
+          "distance": 0.3013278117138056,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "nr.employed"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.8403641881638847,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "poutcome"
+        ],
+        "evidence": {
+          "method": "total_variation_distance",
+          "distance": 0.337608093954475,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "previous"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.337608093954475,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "unseen_feature_categories",
+        "severity": "medium",
+        "columns": [
+          "month"
+        ],
+        "evidence": {
+          "unseen_categories": 1,
+          "affected_test_rows": 570
+        }
+      }
+    ],
+    "duration_included": [
+      {
+        "code": "unavailable_feature",
+        "severity": "critical",
+        "columns": [
+          "duration"
+        ],
+        "evidence": {}
+      },
+      {
+        "code": "class_imbalance",
+        "severity": "medium",
+        "columns": [
+          "y"
+        ],
+        "evidence": {
+          "split": "train",
+          "classes": 2,
+          "minority_fraction": 0.0637329286798179,
+          "majority_baseline_accuracy": 0.936267071320182
+        }
+      },
+      {
+        "code": "duplicate_rows",
+        "severity": "medium",
+        "columns": [],
+        "evidence": {
+          "split": "train",
+          "extra_duplicate_rows": 10
+        }
+      },
+      {
+        "code": "duplicate_rows",
+        "severity": "medium",
+        "columns": [],
+        "evidence": {
+          "split": "test",
+          "extra_duplicate_rows": 2
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "cons.conf.idx"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.31913085700412724,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "cons.price.idx"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.6648406566262198,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "contact"
+        ],
+        "evidence": {
+          "method": "total_variation_distance",
+          "distance": 0.3058950251269055,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "emp.var.rate"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.8403641881638847,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "euribor3m"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.9879210925644917,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "month"
+        ],
+        "evidence": {
+          "method": "total_variation_distance",
+          "distance": 0.3013278117138056,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "nr.employed"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.8403641881638847,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "poutcome"
+        ],
+        "evidence": {
+          "method": "total_variation_distance",
+          "distance": 0.337608093954475,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "previous"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.337608093954475,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "unseen_feature_categories",
+        "severity": "medium",
+        "columns": [
+          "month"
+        ],
+        "evidence": {
+          "unseen_categories": 1,
+          "affected_test_rows": 570
+        }
+      }
+    ],
+    "duration_removed": [
+      {
+        "code": "train_test_overlap",
+        "severity": "high",
+        "columns": [],
+        "evidence": {
+          "matching_test_rows": 2,
+          "test_rows": 8238,
+          "fraction": 0.00024277737314882253
+        }
+      },
+      {
+        "code": "class_imbalance",
+        "severity": "medium",
+        "columns": [
+          "y"
+        ],
+        "evidence": {
+          "split": "train",
+          "classes": 2,
+          "minority_fraction": 0.0637329286798179,
+          "majority_baseline_accuracy": 0.936267071320182
+        }
+      },
+      {
+        "code": "duplicate_rows",
+        "severity": "medium",
+        "columns": [],
+        "evidence": {
+          "split": "train",
+          "extra_duplicate_rows": 1637
+        }
+      },
+      {
+        "code": "duplicate_rows",
+        "severity": "medium",
+        "columns": [],
+        "evidence": {
+          "split": "test",
+          "extra_duplicate_rows": 146
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "cons.conf.idx"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.31913085700412724,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "cons.price.idx"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.6648406566262198,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "contact"
+        ],
+        "evidence": {
+          "method": "total_variation_distance",
+          "distance": 0.3058950251269055,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "emp.var.rate"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.8403641881638847,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "euribor3m"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.9879210925644917,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "month"
+        ],
+        "evidence": {
+          "method": "total_variation_distance",
+          "distance": 0.3013278117138056,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "nr.employed"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.8403641881638847,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "poutcome"
+        ],
+        "evidence": {
+          "method": "total_variation_distance",
+          "distance": 0.337608093954475,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "feature_distribution_shift",
+        "severity": "medium",
+        "columns": [
+          "previous"
+        ],
+        "evidence": {
+          "method": "empirical_ks_distance",
+          "distance": 0.337608093954475,
+          "train_nonmissing": 32950,
+          "test_nonmissing": 8238
+        }
+      },
+      {
+        "code": "unseen_feature_categories",
+        "severity": "medium",
+        "columns": [
+          "month"
+        ],
+        "evidence": {
+          "unseen_categories": 1,
+          "affected_test_rows": 570
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "No synthetic leakage was injected: duration is in the original dataset.",
+    "Availability is declared from source documentation, not inferred by ProofML.",
+    "Duration removal fixes this one contract, not all point-in-time feature semantics.",
+    "Single holdout and estimator; scores are not a significance claim or a production forecast.",
+    "Published row order is used; exact timestamps and stable customer IDs are absent.",
+    "Other contact features and publication lags of economic indicators need lineage review.",
+    "Metrics are computed by scikit-learn, not ProofML; no real business loss was measured."
+  ]
+}

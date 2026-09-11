@@ -61,8 +61,10 @@ def audit(train: Any, test: Any = None, *, target: str | None = None,
     registry = validate_checks(default_checks(config.task) if checks is None else checks, config.disabled_checks)
     train_data = load_dataset(train, config)
     test_data = load_dataset(test, config) if test is not None else None
+    # Required semantic columns must exist. Unavailable predictors instead form
+    # a persistent denylist: their absence is the desired corrected state.
     for column in (config.target, config.entity_id, config.time_column, config.series_id,
-                   config.label_available_column, *config.unavailable_features):
+                   config.label_available_column):
         if column and column not in train_data.columns:
             raise ValueError(f"Declared column absent from training data: {column}")
     ctx = AuditContext(train_data, test_data, config)

@@ -110,6 +110,18 @@ apply policies across tabular/text reports or cross-validation folds.
 See [slice-aware evaluation and CI](docs/slices.md) and the
 [runnable hidden-regression example](examples/slice_regression.py).
 
+## Demonstrated on real data
+
+On all 41,188 records of UCI's Bank Marketing additional dataset, our fixed-holdout
+logistic-regression example scores ROC AUC **0.8211 with call duration** versus
+**0.7483 without it**. Duration is unavailable before the call: ProofML blocks
+that explicitly declared availability violation, regardless of the better score.
+No synthetic leakage is injected. Other review findings remain after removal.
+
+Read the [reproducible case study, measured results, and limitations](docs/case-studies/bank-marketing.md)
+or run [the example](examples/bank_marketing.py). This is one experiment, not a
+claim of general detection accuracy or production readiness.
+
 ## Install
 
 **Publication status:** a public PyPI release is not yet verified. Install from

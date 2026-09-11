@@ -26,10 +26,15 @@ class AvailabilityCheck:
     def run(self, ctx: AuditContext) -> CheckResult:
         if not ctx.config.unavailable_features:
             return CheckResult(self.id, "skipped", reason="Prediction-time availability cannot be inferred; declare unavailable_features.")
+        excluded = {ctx.config.target, ctx.config.entity_id, ctx.config.time_column,
+                    ctx.config.series_id, ctx.config.label_available_column}
+        features = set(ctx.features)
+        if ctx.test is not None:
+            features.update(set(ctx.test.columns) - excluded)
         findings = [Finding("unavailable_feature", "critical", "confirmed", f"Unavailable predictor present: {column}",
-            "The user declared this column unavailable when predictions are made, but it is present among candidate predictors.",
+            "The user declared this column unavailable when predictions are made, but it is present among train or test candidate predictors.",
             "Remove it from model inputs or rebuild it using only information available at prediction time.", (column,))
-            for column in ctx.config.unavailable_features if column in ctx.features]
+            for column in dict.fromkeys(ctx.config.unavailable_features) if column in features]
         return CheckResult.complete(self.id, findings)
 
 

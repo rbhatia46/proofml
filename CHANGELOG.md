@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.1 — Unreleased
+
+- Added a reproducible UCI Bank Marketing case study with checksum-pinned input,
+  train-only scikit-learn pipelines, actual metrics, and retained audit evidence.
+- Fixed unavailable-feature rules to remain active after forbidden columns are
+  removed, and detect forbidden predictors present only in test data.
+- Preserved the availability contract in the clean CLI demo instead of disabling
+  it. Added regression tests for removal, reintroduction, and missing context.
+
 ## 0.7.0 — Unreleased
 
 - Added bounded `audit_retrieval_slices` for query-ID groups or explicit,

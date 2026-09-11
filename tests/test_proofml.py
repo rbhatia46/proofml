@@ -62,6 +62,39 @@ class AuditTests(unittest.TestCase):
         self.assertIn("unavailable_feature", self.codes(report))
         self.assertEqual(next(f for f in report.findings if f.code == "unavailable_feature").severity, "critical")
 
+    def test_unavailable_feature_rule_survives_removal_and_reintroduction(self):
+        from proofml import AuditPolicy
+        clean = self.csv("clean.csv", ["x", "y"], [(2, 0), (3, 1)])
+        dirty = self.csv("dirty.csv", ["x", "post_event", "y"], [(2, 0, 0), (3, 1, 1)])
+        config = AuditConfig(target="y", unavailable_features=("post_event",))
+        policy = AuditPolicy(severity="critical", require_checks=("feature_availability",))
+        self.assertTrue(policy.evaluate(audit(clean, config=config)).passed)
+        self.assertEqual(policy.evaluate(audit(dirty, config=config)).status, "failed")
+        self.assertEqual(policy.evaluate(audit(clean, target="y")).status, "insufficient")
+
+    def test_unavailable_feature_present_only_in_test_is_flagged(self):
+        train = self.csv("train.csv", ["x", "y"], [(1, 0), (2, 1)])
+        test = self.csv("test.csv", ["x", "post_event"], [(3, 1)])
+        report = audit(train, test, target="y", unavailable_features=("post_event", "post_event"))
+        findings = [f for f in report.findings if f.code == "unavailable_feature"]
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].columns, ("post_event",))
+
+    def test_denylist_does_not_relax_required_semantic_columns(self):
+        train = self.csv("train.csv", ["x", "y"], [(1, 0), (2, 1)])
+        for field in ("target", "entity_id", "time_column"):
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, "Declared column absent"):
+                audit(train, **{field: "absent"}, unavailable_features=("post_event",))
+
+    def test_clean_demo_keeps_availability_rule(self):
+        destination = self.root / "demo"
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(main(["demo", "--clean", "--output", str(destination)]), 0)
+        payload = json.loads((destination / "report.json").read_text())
+        self.assertEqual(payload["config"]["unavailable_features"], ["cancellation_recorded"])
+        result = next(c for c in payload["checks"] if c["check_id"] == "feature_availability")
+        self.assertEqual(result["status"], "passed")
+
     def test_regression_linear_proxy(self):
         path = self.csv("data.csv", ["x", "y"], [(i * 3 + 7, i) for i in range(50)])
         report = audit(path, config=AuditConfig(target="y", task="regression"))
@@ -265,7 +298,7 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(codes, {"unavailable_feature", "shared_entities", "target_copy", "temporal_overlap",
                                  "train_test_overlap", "duplicate_rows", "feature_distribution_shift", "missing_values"})
         self.assertEqual(clean["summary"]["findings"], 0)
-        self.assertEqual(clean["summary"]["check_counts"]["skipped"], 1)
+        self.assertEqual(clean["summary"]["check_counts"]["skipped"], 0)
 
     def test_cli_check_errors_override_severity_gating(self):
         path = self.csv("data.csv", ["x"], [(1,)])

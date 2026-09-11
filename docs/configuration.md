@@ -23,7 +23,12 @@
 All fields are optional; omit semantic fields when unknown. `task` defaults to
 classification and accepts regression or forecasting. A target is not guessed. Column names
 are case sensitive after stripping surrounding whitespace. Declared columns
-must exist in training data. CLI target/task/entity/time flags override JSON.
+must exist in training data, except for `unavailable_features`: this is a
+persistent denylist whose columns may be absent. Their presence among train or
+test predictors triggers a critical finding; their absence passes that check.
+Keep the denylist after dropping a forbidden column so reintroduction is caught.
+Names are exact, not fuzzy: review typos and renamed/derived features separately.
+CLI target/task/entity/time flags override JSON.
 Paths are supplied on the command line, not embedded in configuration.
 
 Declare `require_disjoint_entities` only when evaluating unseen entities.
