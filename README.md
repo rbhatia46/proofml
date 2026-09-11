@@ -112,6 +112,18 @@ See [slice-aware evaluation and CI](docs/slices.md) and the
 
 ## Demonstrated on real data
 
+**Start with the [executed notebook gallery](examples/README.md):**
+
+- [Search/retrieval on BEIR SciFact](examples/notebooks/scifact_retrieval.ipynb):
+  real local rankings, cohort regression gates, ID-integrity faults, and CI replay.
+  On 300 test queries, removing abstracts from the index lowers recall@10 from
+  0.7735 to 0.5476 under the documented TF-IDF recipe.
+- [Bank Marketing feature availability](examples/notebooks/bank_marketing.ipynb):
+  turn a prediction-time constraint into a persistent training guardrail.
+
+Both notebooks include measured outputs and run without API keys. See their
+source attribution and limits; the gallery includes local/offline setup.
+
 On all 41,188 records of UCI's Bank Marketing additional dataset, our fixed-holdout
 logistic-regression example scores ROC AUC **0.8211 with call duration** versus
 **0.7483 without it**. Duration is unavailable before the call: ProofML blocks

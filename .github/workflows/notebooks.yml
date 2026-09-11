@@ -1,0 +1,25 @@
+name: Benchmark notebooks
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install . -r examples/requirements-notebooks.txt
+      # Network access is explicit and limited by the checksum-pinned loaders.
+      - run: python scripts/verify_notebooks.py --download --output artifacts/notebook-check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: executed-benchmark-notebooks
+          path: |
+            artifacts/notebook-check/*.ipynb
+            artifacts/scifact-notebook-*/evidence/
+            artifacts/bank-notebook-*/

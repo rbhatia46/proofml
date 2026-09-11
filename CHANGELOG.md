@@ -2,6 +2,10 @@
 
 ## 0.7.1 — Unreleased
 
+- Added executed BEIR SciFact retrieval and UCI Bank Marketing notebooks, a
+  local TF-IDF benchmark adapter, real cohort metrics, a fresh-kernel verifier,
+  and a manually dispatched real-data notebook workflow.
+
 - Added a reproducible UCI Bank Marketing case study with checksum-pinned input,
   train-only scikit-learn pipelines, actual metrics, and retained audit evidence.
 - Fixed unavailable-feature rules to remain active after forbidden columns are

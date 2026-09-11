@@ -12,3 +12,4 @@ dist/
 htmlcov/
 *.log
 .DS_Store
+.ipynb_checkpoints/

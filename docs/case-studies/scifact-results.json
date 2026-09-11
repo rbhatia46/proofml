@@ -1,0 +1,70 @@
+{
+  "dataset": "BEIR SciFact test",
+  "source": "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/scifact.zip",
+  "archive_sha256": "536e14446a0ba56ed1398ab1055f39fe852686ecad24a6306c80c490fa8e0165",
+  "member_sha256": {
+    "scifact/corpus.jsonl": "dec31c8182f3d744c7d2c09423756fd1d17cbef75808db13ba01cc0aab4d1ac6",
+    "scifact/queries.jsonl": "8ff84a7c903f722981cd8d595c022660140c51867b27608a6d4910db86080313",
+    "scifact/qrels/test.tsv": "0864bb985e0ca2367ba217977e72004d549054b2b06666ed9d4825ac7c21284c"
+  },
+  "corpus_documents": 5183,
+  "test_queries": 300,
+  "positive_qrels": 339,
+  "k": 10,
+  "short_query_max_words": 12,
+  "retriever": "scikit-learn unigram TF-IDF; sublinear TF; L2 cosine; Unicode accents stripped; no stop-word list",
+  "baseline_fields": [
+    "title",
+    "text"
+  ],
+  "candidate_fields": [
+    "title"
+  ],
+  "tie_break": "lexicographic document ID; zero-score results omitted",
+  "training": "vocabulary and IDF fitted on corpus only; no qrel/query fitting or tuning",
+  "versions": {
+    "proofml": "0.7.1",
+    "scikit-learn": "1.9.0",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "pandas": "2.3.3"
+  },
+  "python": "3.13.0",
+  "gate": "failed",
+  "cohorts": [
+    {
+      "cohort": "overall",
+      "queries": 300,
+      "baseline_recall@10": 0.7735000000000001,
+      "candidate_recall@10": 0.547611111111111,
+      "baseline_ndcg@10": 0.6285531214812358,
+      "candidate_ndcg@10": 0.4165802851450665,
+      "gate": "failed"
+    },
+    {
+      "cohort": "short_queries",
+      "queries": 163,
+      "baseline_recall@10": 0.7726993865030675,
+      "candidate_recall@10": 0.5322085889570553,
+      "baseline_ndcg@10": 0.6385472935055474,
+      "candidate_ndcg@10": 0.4093806111793739,
+      "gate": "failed"
+    },
+    {
+      "cohort": "long_queries",
+      "queries": 137,
+      "baseline_recall@10": 0.7744525547445255,
+      "candidate_recall@10": 0.5659367396593674,
+      "baseline_ndcg@10": 0.6166622452771284,
+      "candidate_ndcg@10": 0.42514632059330015,
+      "gate": "failed"
+    }
+  ],
+  "limitations": [
+    "Binary relevance, unlisted documents treated as nonrelevant; judgments are not exhaustive.",
+    "Cohorts and 0.05 tolerances are illustrative, not calibrated significance tests.",
+    "No query/document text in saved reports; these findings do not verify scientific claims.",
+    "Baseline compatibility hashes IDs and judgments, not document/query contents; pins retain source provenance.",
+    "No claim of latency improvement or leaderboard equivalence; index fields are deliberately different."
+  ]
+}

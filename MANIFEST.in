@@ -3,4 +3,5 @@ recursive-include docs *.md
 recursive-include docs/case-studies *.json
 recursive-include tests *.py
 recursive-include examples *.py
+recursive-include examples *.md *.ipynb *.txt
 recursive-include scripts *.py
